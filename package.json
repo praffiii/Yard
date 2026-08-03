@@ -1,0 +1,33 @@
+{
+  "name": "yard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp run -r --parallel dev",
+    "check": "vp check",
+    "test": "vp test",
+    "build": "vp run -r build",
+    "typecheck": "vp run -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.1",
+    "@voidzero-dev/vite-plus-core": "0.2.7",
+    "vite-plus": "0.2.7"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "10.33.0",
+      "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "24.18.1",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": "24.18.1"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

@@ -1,2 +1,12 @@
 /docs/
 /idea.MD
+
+node_modules/
+dist/
+.vite/
+.tanstack/
+.pnpm-store/
+.env
+.env.*
+!.env.example
+*.local
