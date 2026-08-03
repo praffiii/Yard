@@ -1,5 +1,8 @@
 # Yard
 
+Yard is a web app for people to discover and plan activities and communities nearby.
+
+
 Yard is a small TypeScript workspace with two separately buildable applications:
 
 - `apps/web` — TanStack Start and TanStack Router web shell.
