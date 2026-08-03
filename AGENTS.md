@@ -67,6 +67,8 @@ Before calling a feature complete, check the entries that apply and state any de
 - **Domain modules.** Assign each rule and table to its owner: `identity`, `communities`, `activities`, `participation`, `discovery`, `media`, `safety`, or `notifications`.
 - **HTTP contracts.** API work follows the versioned HTTP/JSON boundary, typed Hono client usage, runtime validation in the API, resource-oriented actions, and privacy-aware DTOs. Do not put server runtime code in the browser bundle.
 - **Effect application layer.** Use Effect in `apps/api` for complex workflows, typed errors, dependency provision, resource safety, and controlled asynchronous work. Keep Hono as the HTTP boundary, do not introduce Effect in `apps/web` by default, and keep small pure functions as ordinary TypeScript when Effect does not add clarity.
+- **Web presentation.** `apps/web` uses Tailwind with Yard's semantic design tokens, project-owned shadcn/ui components backed by Radix when needed, Phosphor Icons, and Motion for React. Use shared motion tokens and reduced-motion behavior; use CSS for simple transitions. Do not add a second UI kit or competing icon/animation library.
+- **Web state.** TanStack Query owns API-backed server state and Hono RPC remains the transport boundary. TanStack Router search parameters own shareable discovery state, React local state owns ephemeral UI state, and Clerk owns authentication state. Do not add a global client store or persist private Query cache by default; avoid optimistic updates for safety-sensitive mutations.
 - **Providers.** Clerk, PostgreSQL/PostGIS through Drizzle and Neon, Cloudflare R2, Mapbox, and Resend each belong behind the appropriate infrastructure adapter. Provider SDK types and credentials must not spread through domain modules.
 - **State transitions.** Stateful behavior uses explicit domain commands and resource actions such as `publishActivity`, `approveRsvp`, `withdraw`, `cancel`, and `checkIn`, not arbitrary status updates. Consider the reverse path, terminal states, concurrency, idempotency, and derived state.
 - **Transactions and side effects.** Durable domain changes that must be atomic share one database transaction. External provider side effects happen after commit and need explicit failure/idempotency handling.
@@ -149,6 +151,8 @@ The backend remains a modular monolith. There is one web-to-API boundary in the 
 - `apps/api/src/runtime` — Effect composition, application bootstrap, and Node server wiring.
 - `apps/api/test` — focused API and startup tests.
 - `docs/adr` — accepted and proposed architectural decisions; read the relevant files before changing architecture.
+- `docs/adr/0079-web-styling-components-and-motion.md` — web presentation, component, icon, theme, and motion decisions.
+- `docs/adr/0080-web-data-fetching-and-client-state-boundaries.md` — web server-state, URL-state, local-state, authentication-state, and cache ownership decisions.
 - `docs/agents` — issue-tracker and domain-documentation instructions.
 - `docs/glossary.md` — canonical product and engineering vocabulary.
 - `docs/api-endpoint-inventory.md` and `docs/database-schema-inventory.md` — inventories that must stay aligned with implemented contracts and schema decisions.
