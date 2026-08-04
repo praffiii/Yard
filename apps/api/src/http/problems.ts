@@ -23,36 +23,48 @@ export const problemCodes = {
   unauthenticated: 'unauthenticated',
 } as const;
 
-const problemTypeValues = Object.values(problemTypes) as [
-  (typeof problemTypes)[keyof typeof problemTypes],
-  ...(typeof problemTypes)[keyof typeof problemTypes][],
-];
-const problemCodeValues = Object.values(problemCodes) as [
-  (typeof problemCodes)[keyof typeof problemCodes],
-  ...(typeof problemCodes)[keyof typeof problemCodes][],
-];
+const ProblemTypeSchema = Schema.Literal(
+  problemTypes.conflict,
+  problemTypes.forbidden,
+  problemTypes.internalError,
+  problemTypes.invalidRequest,
+  problemTypes.notFound,
+  problemTypes.rateLimited,
+  problemTypes.unauthenticated,
+);
+
+const ProblemCodeSchema = Schema.Literal(
+  problemCodes.conflict,
+  problemCodes.forbidden,
+  problemCodes.internalError,
+  problemCodes.invalidRequest,
+  problemCodes.notFound,
+  problemCodes.rateLimited,
+  problemCodes.routeNotFound,
+  problemCodes.unauthenticated,
+);
+
+const ProblemStatusSchema = Schema.Literal(400, 401, 403, 404, 409, 429, 500);
+
+const ProblemValidationErrorSchema = Schema.Struct({
+  path: Schema.String,
+  message: Schema.String,
+});
 
 export const ProblemDetailsSchema = Schema.Struct({
-  type: Schema.Literal(...problemTypeValues),
+  type: ProblemTypeSchema,
   title: Schema.String,
-  status: Schema.Literal(400, 401, 403, 404, 409, 429, 500),
-  code: Schema.Literal(...problemCodeValues),
+  status: ProblemStatusSchema,
+  code: ProblemCodeSchema,
   requestId: Schema.String,
   detail: Schema.optional(Schema.String),
-  errors: Schema.optional(
-    Schema.Array(
-      Schema.Struct({
-        path: Schema.String,
-        message: Schema.String,
-      }),
-    ),
-  ),
+  errors: Schema.optional(Schema.Array(ProblemValidationErrorSchema)),
 });
 
 export type ProblemDetails = Schema.Schema.Type<typeof ProblemDetailsSchema>;
-export type ProblemType = ProblemDetails['type'];
-export type ProblemCode = ProblemDetails['code'];
-export type ProblemStatus = ProblemDetails['status'];
+export type ProblemType = Schema.Schema.Type<typeof ProblemTypeSchema>;
+export type ProblemCode = Schema.Schema.Type<typeof ProblemCodeSchema>;
+export type ProblemStatus = Schema.Schema.Type<typeof ProblemStatusSchema>;
 
 export type ValidationIssue = {
   readonly path?: ReadonlyArray<PropertyKey | { readonly key: PropertyKey }>;

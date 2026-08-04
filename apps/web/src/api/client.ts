@@ -15,8 +15,10 @@ export function createApiClient(baseUrl: string = import.meta.env.VITE_API_URL ?
 
 export const apiClient = createApiClient();
 
-const problemStatuses = new Set<ProblemDetails['status']>([400, 401, 403, 404, 409, 429, 500]);
-const problemTypes = new Set<ProblemType>([
+const problemStatusValues: readonly ProblemDetails['status'][] = [
+  400, 401, 403, 404, 409, 429, 500,
+];
+const problemTypeValues: readonly ProblemType[] = [
   'https://yard.local/problems/conflict',
   'https://yard.local/problems/forbidden',
   'https://yard.local/problems/internal-error',
@@ -24,8 +26,8 @@ const problemTypes = new Set<ProblemType>([
   'https://yard.local/problems/not-found',
   'https://yard.local/problems/rate-limited',
   'https://yard.local/problems/unauthenticated',
-]);
-const problemCodes = new Set<ProblemCode>([
+];
+const problemCodeValues: readonly ProblemCode[] = [
   'conflict',
   'forbidden',
   'internal_error',
@@ -34,22 +36,35 @@ const problemCodes = new Set<ProblemCode>([
   'rate_limited',
   'route_not_found',
   'unauthenticated',
-]);
+];
+
+type ValidationError = {
+  readonly path: string;
+  readonly message: string;
+};
+
+function isKnownValue(values: readonly (string | number)[], value: unknown) {
+  return values.some((allowed) => allowed === value);
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function isValidationErrors(
-  value: unknown,
-): value is ReadonlyArray<{ readonly path: string; readonly message: string }> {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (error) =>
-        isRecord(error) && typeof error.path === 'string' && typeof error.message === 'string',
-    )
-  );
+function isValidationError(value: unknown): value is ValidationError {
+  return isRecord(value) && typeof value.path === 'string' && typeof value.message === 'string';
+}
+
+function isValidationErrors(value: unknown): value is ReadonlyArray<ValidationError> {
+  return Array.isArray(value) && value.every(isValidationError);
+}
+
+function hasOptionalString(record: Record<string, unknown>, key: string) {
+  return !(key in record) || record[key] === undefined || typeof record[key] === 'string';
+}
+
+function hasOptionalValidationErrors(record: Record<string, unknown>) {
+  return !('errors' in record) || record.errors === undefined || isValidationErrors(record.errors);
 }
 
 /** Safely narrows an error response to Yard's browser-safe Problem Details shape. */
@@ -59,16 +74,13 @@ export function isProblemDetails(value: unknown): value is ProblemDetails {
   }
 
   return (
-    typeof value.type === 'string' &&
-    problemTypes.has(value.type as ProblemType) &&
+    isKnownValue(problemTypeValues, value.type) &&
     typeof value.title === 'string' &&
-    typeof value.status === 'number' &&
-    problemStatuses.has(value.status as ProblemDetails['status']) &&
-    typeof value.code === 'string' &&
-    problemCodes.has(value.code as ProblemCode) &&
+    isKnownValue(problemStatusValues, value.status) &&
+    isKnownValue(problemCodeValues, value.code) &&
     typeof value.requestId === 'string' &&
-    (!('detail' in value) || value.detail === undefined || typeof value.detail === 'string') &&
-    (!('errors' in value) || value.errors === undefined || isValidationErrors(value.errors))
+    hasOptionalString(value, 'detail') &&
+    hasOptionalValidationErrors(value)
   );
 }
 
