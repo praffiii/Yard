@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { Schema } from 'effect';
-import { rateLimit } from '../rate-limit.js';
+import { rateLimitMiddleware } from '../rate-limit-middleware.js';
 import { contractFixtureRoutes } from './contract-routes.js';
 import type { ApiEnv } from '../request-context.js';
-import type { RateLimiter } from '../../infrastructure/rate-limit.js';
+import type { RateLimiter } from '../../infrastructure/rate-limiter.js';
 
 const ApiVersionResponseSchema = Schema.Struct({
   apiVersion: Schema.Literal('v1'),
@@ -22,7 +22,7 @@ export function createV1Routes(options: {
   includeContractFixture?: boolean;
 }) {
   const routes = new Hono<ApiEnv>()
-    .use('*', rateLimit(options.rateLimiter))
+    .use('*', rateLimitMiddleware(options.rateLimiter))
     // Keep the reserved namespace discoverable and typed before product routes land.
     .get('/', (c) => c.json(apiVersionResponse));
 

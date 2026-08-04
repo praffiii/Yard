@@ -2,7 +2,7 @@ import { HTTPException } from 'hono/http-exception';
 import { cors } from 'hono/cors';
 import { Hono } from 'hono';
 import { apiConfig } from '../infrastructure/config.js';
-import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limit.js';
+import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limiter.js';
 import { runApplication } from '../runtime/application.js';
 import { healthCheck } from './routes/health.js';
 import { problemForStatus, routeNotFoundProblem } from './problems.js';
