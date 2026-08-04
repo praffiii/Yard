@@ -23,7 +23,7 @@ export const problemCodes = {
   unauthenticated: 'unauthenticated',
 } as const;
 
-const ProblemTypeSchema = Schema.Literal(
+const problemTypeValues = [
   problemTypes.conflict,
   problemTypes.forbidden,
   problemTypes.internalError,
@@ -31,9 +31,9 @@ const ProblemTypeSchema = Schema.Literal(
   problemTypes.notFound,
   problemTypes.rateLimited,
   problemTypes.unauthenticated,
-);
+] as const;
 
-const ProblemCodeSchema = Schema.Literal(
+const problemCodeValues = [
   problemCodes.conflict,
   problemCodes.forbidden,
   problemCodes.internalError,
@@ -42,7 +42,10 @@ const ProblemCodeSchema = Schema.Literal(
   problemCodes.rateLimited,
   problemCodes.routeNotFound,
   problemCodes.unauthenticated,
-);
+] as const;
+
+const ProblemTypeSchema = Schema.Literal(...problemTypeValues);
+const ProblemCodeSchema = Schema.Literal(...problemCodeValues);
 
 const ProblemStatusSchema = Schema.Literal(400, 401, 403, 404, 409, 429, 500);
 
