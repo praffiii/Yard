@@ -3,13 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
+    "start": "node dist/main.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "2.0.12",
+    "@hono/standard-validator": "0.3.0",
+    "@standard-schema/spec": "1.1.0",
     "effect": "3.22.1",
     "hono": "4.12.34"
   },
