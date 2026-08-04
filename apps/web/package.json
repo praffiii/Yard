@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@tanstack/react-router": "1.170.18",
-    "@tanstack/react-start": "1.168.34",
-    "hono": "4.12.34",
+    "@tanstack/react-start": "1.168.35",
+    "hono": "4.13.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@types/node": "24.13.1",
+    "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",

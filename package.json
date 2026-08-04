@@ -10,7 +10,7 @@
     "typecheck": "vp run -r typecheck"
   },
   "devDependencies": {
-    "@types/node": "24.13.1",
+    "@types/node": "24.13.3",
     "@voidzero-dev/vite-plus-core": "0.2.7",
     "vite-plus": "0.2.7"
   },
