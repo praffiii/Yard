@@ -30,6 +30,12 @@ importers:
       '@hono/node-server':
         specifier: 2.0.12
         version: 2.0.12(hono@4.12.34)
+      '@hono/standard-validator':
+        specifier: 0.3.0
+        version: 0.3.0(@standard-schema/spec@1.1.0)(hono@4.12.34)
+      '@standard-schema/spec':
+        specifier: 1.1.0
+        version: 1.1.0
       effect:
         specifier: 3.22.1
         version: 3.22.1
@@ -58,6 +64,9 @@ importers:
       '@tanstack/react-start':
         specifier: 1.168.34
         version: 1.168.34(@voidzero-dev/vite-plus-core@0.2.7(@types/node@24.13.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.5)(typescript@5.9.3))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)
+      hono:
+        specifier: 4.12.34
+        version: 4.12.34
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -325,6 +334,12 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
+
+  '@hono/standard-validator@0.3.0':
+    resolution: {integrity: sha512-tHLKEjKXDcHImj0XTFWW4Hr0ev+1G5GxnBZrGdpg/7NLy9s9meFPTSCOkw++ZzZKom3FjrMw2e0nFQpPPvwUVQ==}
+    peerDependencies:
+      '@standard-schema/spec': ^1.0.0
+      hono: '>=4.11.2'
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2105,6 +2120,11 @@ snapshots:
 
   '@hono/node-server@2.0.12(hono@4.12.34)':
     dependencies:
+      hono: 4.12.34
+
+  '@hono/standard-validator@0.3.0(@standard-schema/spec@1.1.0)(hono@4.12.34)':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
       hono: 4.12.34
 
   '@jridgewell/gen-mapping@0.3.13':
