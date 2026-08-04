@@ -2,8 +2,9 @@ import { HTTPException } from 'hono/http-exception';
 import { cors } from 'hono/cors';
 import { Hono } from 'hono';
 import { apiConfig } from '../infrastructure/config.js';
+import { type DatabaseClient, type DatabaseHealth } from '../infrastructure/database/client.js';
 import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limiter.js';
-import { runApplication } from '../runtime/application.js';
+import { applicationLayer, runApplication } from '../runtime/application.js';
 import { healthCheck } from './routes/health.js';
 import { problemForStatus, routeNotFoundProblem } from './problems.js';
 import { requestIdMiddleware } from './request-id.js';
@@ -14,9 +15,11 @@ export type CreateAppOptions = {
   /** Only contract tests enable the non-product validation fixture. */
   readonly includeContractFixture?: boolean;
   readonly rateLimiter?: RateLimiter;
+  readonly database?: DatabaseClient | DatabaseHealth;
 };
 
 export function createApp(options: CreateAppOptions = {}) {
+  const layer = applicationLayer(options.database);
   const v1 = createV1Routes({
     includeContractFixture: options.includeContractFixture,
     rateLimiter: options.rateLimiter ?? allowAllRateLimiter,
@@ -32,7 +35,15 @@ export function createApp(options: CreateAppOptions = {}) {
         origin: (origin) => (apiConfig.allowedOrigins.includes(origin) ? origin : undefined),
       }),
     )
-    .get('/healthz', async (c) => c.json(await runApplication(healthCheck)))
+    .get('/healthz', async (c) => {
+      const health = await runApplication(healthCheck, layer);
+
+      if (health.status === 'ok') {
+        return c.json(health, 200);
+      }
+
+      return c.json(health, 503);
+    })
     .route('/v1', v1);
 
   api.onError((error, c) => {
@@ -48,6 +59,5 @@ export function createApp(options: CreateAppOptions = {}) {
   return api;
 }
 
-export const app = createApp();
-export type AppType = typeof app;
+export type AppType = ReturnType<typeof createApp>;
 export type { ProblemCode, ProblemDetails, ProblemType } from './problems.js';

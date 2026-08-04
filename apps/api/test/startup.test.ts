@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test';
+import { createApp } from '../src/http/app.js';
 import { createServer } from '../src/runtime/server.js';
+import { healthyDatabase } from './database-fixtures.js';
 
 describe('api startup', () => {
   it('serves health over a real Node HTTP listener', async () => {
-    const server = createServer(0);
+    const server = createServer(createApp({ database: healthyDatabase }), 0);
 
     await new Promise<void>((resolve, reject) => {
       server.once('listening', resolve);

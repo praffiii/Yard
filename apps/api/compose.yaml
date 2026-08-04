@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    ports:
+      - '127.0.0.1:${POSTGRES_HOST_PORT:?Set POSTGRES_HOST_PORT in apps/api/.env}:5432'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in apps/api/.env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in apps/api/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in apps/api/.env}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - yard-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  yard-postgres-data:

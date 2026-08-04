@@ -16,5 +16,7 @@ and invariants.
 | `notifications` | In-app notifications, preferences, delivery intent | Call email providers after domain work commits           |
 
 `src/http` contains HTTP transport composition. `src/infrastructure` contains
-configuration and future provider adapters. `src/runtime` contains process and
-Effect composition. No database or provider integration is part of this shell.
+configuration, the pooled PostgreSQL/Neon runtime adapter, and future provider
+adapters. `src/runtime` contains process and Effect composition. YARD-10 adds
+only the database/PostGIS foundation; domain tables remain owned by their
+modules and are deferred to later migrations.
