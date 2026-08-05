@@ -50,7 +50,7 @@ describe('versioned API contract', () => {
     expect(JSON.stringify(problem)).not.toContain('stack');
   });
 
-  it('keeps unknown routes outside the protected route group', async () => {
+  it('keeps unknown public routes outside the protected route group', async () => {
     let verifierCalls = 0;
     const contractApp = createApp({
       authVerifier: {
@@ -67,6 +67,20 @@ describe('versioned API contract', () => {
     expect(response.status).toBe(404);
     expect(problem.code).toBe('route_not_found');
     expect(verifierCalls).toBe(0);
+  });
+
+  it('returns a safe 404 for unknown paths inside the protected group', async () => {
+    const contractApp = createApp({
+      authVerifier: contractVerifier,
+      includeContractFixture: true,
+    });
+    const response = await contractApp.request('/v1/__contract/does-not-exist', {
+      headers: { Authorization: 'Bearer contract-token' },
+    });
+    const problem = await readProblem(response);
+
+    expect(response.status).toBe(404);
+    expect(problem.code).toBe('route_not_found');
   });
 
   it('validates body, query, path, and header inputs with safe errors', async () => {
