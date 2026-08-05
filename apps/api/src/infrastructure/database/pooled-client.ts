@@ -21,19 +21,22 @@ export function createPooledDatabase<TDatabase extends YardDatabase>(
   return {
     kind: 'client',
     db,
-    ping: () => {
+    ping: async () => {
       if (poolError) {
         const error = poolError;
         poolError = undefined;
-        return Promise.reject(error);
+        throw error;
       }
 
-      pendingPing ??= Promise.resolve()
-        .then(() => pool.query('SELECT 1'))
-        .then(() => undefined)
-        .finally(() => {
-          pendingPing = undefined;
-        });
+      if (!pendingPing) {
+        pendingPing = (async () => {
+          try {
+            await pool.query('SELECT 1');
+          } finally {
+            pendingPing = undefined;
+          }
+        })();
+      }
 
       return pendingPing;
     },
