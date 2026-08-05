@@ -1,7 +1,7 @@
 export type RateLimitRequest = {
   readonly method: string;
   readonly path: string;
-  readonly actorId?: string;
+  readonly yardUserId?: string;
   readonly clientIp?: string;
 };
 

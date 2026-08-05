@@ -124,18 +124,27 @@ describe('browser-to-API authentication', () => {
     expect(missingAuthResponse.status).toBe(401);
   });
 
-  it('passes the verified subject to actor-scoped rate limiting', async () => {
-    const actorIds: Array<string | undefined> = [];
+  it('does not pass a provider subject as a Yard user ID to rate limiting', async () => {
+    const yardUserIds: Array<string | undefined> = [];
     const app = createApp({
       authVerifier: { verify: async () => ({ subject: 'user_verified' }) },
       rateLimiter: {
-        check: ({ actorId }) => {
-          actorIds.push(actorId);
+        check: ({ yardUserId }) => {
+          yardUserIds.push(yardUserId);
           return { allowed: true };
         },
       },
       includeContractFixture: true,
     });
+
+    const unauthenticatedResponse = await app.request(`/v1/__contract/${resourceId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'hello yard' }),
+    });
+
+    expect(unauthenticatedResponse.status).toBe(401);
+    expect(yardUserIds).toEqual([]);
 
     const response = await app.request(`/v1/__contract/${resourceId}`, {
       method: 'POST',
@@ -147,7 +156,29 @@ describe('browser-to-API authentication', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(actorIds).toEqual(['user_verified']);
+    expect(yardUserIds).toEqual([undefined]);
+  });
+
+  it('keeps the verified provider subject separate from Yard identity context', async () => {
+    const app = new Hono<ApiEnv>()
+      .use('*', requestIdMiddleware)
+      .use('*', authenticationMiddleware({ verify: async () => ({ subject: 'user_verified' }) }))
+      .get('/protected', (c) =>
+        c.json({
+          verifiedAuthSubject: c.get('verifiedAuthSubject'),
+          yardUserId: c.get('yardUserId'),
+        }),
+      );
+
+    const response = await app.request('/protected', {
+      headers: { Authorization: 'Bearer clerk-session-token' },
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      verifiedAuthSubject: 'user_verified',
+      yardUserId: undefined,
+    });
   });
 
   it('restricts CORS to configured origins without making CORS authorization', async () => {

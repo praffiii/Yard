@@ -24,20 +24,26 @@ export function createV1Routes(options: {
   rateLimiter: RateLimiter;
   includeContractFixture?: boolean;
 }) {
-  const routes = (
-    options.includeContractFixture
-      ? new Hono<ApiEnv>()
-          // Protected route groups authenticate before rate limiting so actor-scoped
-          // abuse controls receive only verified identity context.
-          .use('/__contract/*', authenticationMiddleware(options.authVerifier))
-      : new Hono<ApiEnv>()
-  )
-    .use('*', rateLimitMiddleware(options.rateLimiter))
-    // Keep the reserved namespace discoverable and typed before product routes land.
-    .get('/', (c) => c.json(apiVersionResponse));
+  // Keep the anonymous group intentionally small: only the version discovery
+  // route belongs here until a product endpoint explicitly requires public access.
+  const publicRoutes = new Hono<ApiEnv>().get('/', rateLimitMiddleware(options.rateLimiter), (c) =>
+    c.json(apiVersionResponse),
+  );
+
+  // All product routes belong in this group so authentication runs before any
+  // authenticated rate-limit key or domain handler can consume request context.
+  const protectedRoutes = new Hono<ApiEnv>()
+    .use('*', authenticationMiddleware(options.authVerifier))
+    .use('*', rateLimitMiddleware(options.rateLimiter));
 
   if (options.includeContractFixture) {
-    routes.route('/__contract', contractFixtureRoutes);
+    protectedRoutes.route('/__contract', contractFixtureRoutes);
+  }
+
+  const routes = new Hono<ApiEnv>().route('/', publicRoutes);
+
+  if (options.includeContractFixture) {
+    routes.route('/', protectedRoutes);
   }
 
   return routes;

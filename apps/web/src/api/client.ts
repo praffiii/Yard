@@ -31,11 +31,8 @@ export function readWebApiUrl(value: string | undefined = import.meta.env.VITE_A
 }
 
 /** Browser-only transport client; API runtime code is used only as a type. */
-export function createApiClient(
-  baseUrl: string = readWebApiUrl(),
-  getToken?: SessionTokenProvider,
-) {
-  return hc<AppType>(baseUrl, {
+export function createApiClient(baseUrl?: string, getToken?: SessionTokenProvider) {
+  return hc<AppType>(readWebApiUrl(baseUrl), {
     headers: getToken
       ? async (): Promise<Record<string, string>> => {
           const token = (await getToken())?.trim();
@@ -51,8 +48,10 @@ export function createApiClient(
   });
 }
 
-/** Anonymous client for public API resources; authenticated callers use useApiClient. */
-export const apiClient = createApiClient(import.meta.env.VITE_API_URL ?? '');
+/** Creates an anonymous client for public API resources. */
+export function createPublicApiClient(baseUrl?: string) {
+  return createApiClient(baseUrl);
+}
 
 const problemStatusValues: readonly ProblemDetails['status'][] = [
   400, 401, 403, 404, 409, 429, 500,

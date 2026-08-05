@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createApiClient,
+  createPublicApiClient,
   isProblemDetails,
   readProblemDetails,
   readWebApiUrl,
@@ -17,6 +18,11 @@ describe('browser API boundary', () => {
     expect(readWebApiUrl('https://api.example')).toBe('https://api.example');
     expect(() => readWebApiUrl(undefined)).toThrow('VITE_API_URL is required');
     expect(() => readWebApiUrl('/api')).toThrow('VITE_API_URL must be an absolute');
+  });
+
+  it('validates every client entry point before creating a transport client', () => {
+    expect(() => createApiClient('/api')).toThrow('VITE_API_URL must be an absolute');
+    expect(() => createPublicApiClient(undefined)).toThrow('VITE_API_URL is required');
   });
 
   it('exposes the typed version route and parses safe Problem Details', async () => {

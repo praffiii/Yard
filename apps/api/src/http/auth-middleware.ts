@@ -6,9 +6,10 @@ import type { AuthTokenVerifier, VerifiedIdentity } from '../infrastructure/auth
 const bearerTokenPattern = /^Bearer\s+(\S+)$/i;
 
 /**
- * Authenticates a protected transport path and stores only verified identity
- * context. Missing, malformed, and provider-rejected credentials are
- * intentionally indistinguishable to callers.
+ * Authenticates a protected transport path and stores only the verified
+ * provider subject. The identity module must resolve it to a Yard user before
+ * any actor-scoped operation. Missing, malformed, and provider-rejected
+ * credentials are intentionally indistinguishable to callers.
  */
 export function authenticationMiddleware(verifier: AuthTokenVerifier): MiddlewareHandler<ApiEnv> {
   return async (c, next) => {
@@ -31,7 +32,7 @@ export function authenticationMiddleware(verifier: AuthTokenVerifier): Middlewar
       return problemForStatus(c, 401);
     }
 
-    c.set('actorId', identity.subject);
+    c.set('verifiedAuthSubject', identity.subject);
     return next();
   };
 }
