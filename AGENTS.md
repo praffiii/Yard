@@ -181,3 +181,43 @@ Read ADRs relevant to the area being explored. Use `docs/glossary.md` terminolog
 - When requirements are ambiguous, inspect the codebase and relevant ADRs first; ask only when alternatives have materially different product or architectural consequences.
 - Do not reformat or revert unrelated user changes.
 - Keep the implementation smaller than the explanation whenever the domain allows it.
+
+## Dependency Source Code
+
+Use `opensrc` when you need to inspect a third-party dependency's actual
+implementation—not just its public API, types, or documentation. This is useful
+when behavior is unclear or surprising, when debugging an integration or
+version-specific issue, or when checking edge cases, defaults, and internal
+control flow.
+
+For ordinary API usage, prefer the dependency's documentation and installed
+types. Use the source when those do not explain what the dependency actually
+does.
+
+`opensrc` is installed globally. It downloads and caches dependency source at
+`~/.opensrc/`. See `~/.opensrc/sources.json` for cached packages and versions.
+The cache is read-only reference material and is not part of Yard.
+
+### Read source
+
+Run these commands from the Yard repository root so `--cwd "$PWD"` can resolve
+versions from Yard's lockfile. `path` fetches the source automatically if it is
+not cached and prints its location:
+
+```sh
+rg "pattern" "$(opensrc path --cwd "$PWD" <package>)"
+cat "$(opensrc path --cwd "$PWD" <package>)/path/to/file"
+find "$(opensrc path --cwd "$PWD" <package>)" -name "*.ts"
+```
+
+### Fetch source ahead of time
+
+Use `fetch` only when you want to preload one or more packages without reading
+them immediately:
+
+```sh
+opensrc fetch --cwd "$PWD" <package>
+opensrc fetch --cwd "$PWD" pypi:<package> crates:<package> <owner>/<repo>
+```
+
+Do not copy cached source into this repository or import it into the application.
