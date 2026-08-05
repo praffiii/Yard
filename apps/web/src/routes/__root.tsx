@@ -1,5 +1,6 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider } from '@clerk/tanstack-react-start';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
 import '../styles.css';
 
@@ -18,6 +19,7 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const [queryClient] = useState(() => new QueryClient());
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 
   if (!publishableKey) {
@@ -26,9 +28,11 @@ function RootComponent() {
 
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <RootDocument>
-        <Outlet />
-      </RootDocument>
+      <QueryClientProvider client={queryClient}>
+        <RootDocument>
+          <Outlet />
+        </RootDocument>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }

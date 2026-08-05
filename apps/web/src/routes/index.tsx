@@ -1,8 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 import { useApiClient } from '../api/use-client.js';
-
-type ApiStatus = 'checking' | 'ready' | 'unavailable';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -10,28 +8,25 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const apiClient = useApiClient();
-  const [apiStatus, setApiStatus] = useState<ApiStatus>('checking');
+  const apiQuery = useQuery({
+    queryKey: ['api', 'version'],
+    queryFn: async () => {
+      const response = await apiClient.v1.$get();
 
-  useEffect(() => {
-    let disposed = false;
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
 
-    void apiClient.v1.$get().then(
-      (response) => {
-        if (!disposed) {
-          setApiStatus(response.ok ? 'ready' : 'unavailable');
-        }
-      },
-      () => {
-        if (!disposed) {
-          setApiStatus('unavailable');
-        }
-      },
-    );
-
-    return () => {
-      disposed = true;
-    };
-  }, [apiClient]);
+      return response.json();
+    },
+    enabled: typeof window !== 'undefined',
+    retry: false,
+  });
+  const apiStatus = apiQuery.isPending
+    ? 'Connecting to the Yard API...'
+    : apiQuery.isSuccess
+      ? 'Yard API boundary ready'
+      : 'Yard API unavailable';
 
   return (
     <main className="shell">
@@ -43,13 +38,7 @@ function HomePage() {
         </p>
         <div className="status-card" role="status">
           <span className="status-dot" aria-hidden="true" />
-          <span>
-            {apiStatus === 'checking'
-              ? 'Connecting to the Yard API...'
-              : apiStatus === 'ready'
-                ? 'Yard API boundary ready'
-                : 'Yard API unavailable'}
-          </span>
+          <span>{apiStatus}</span>
         </div>
       </section>
     </main>
