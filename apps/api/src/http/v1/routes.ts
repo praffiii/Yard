@@ -30,21 +30,27 @@ export function createV1Routes(options: {
     c.json(apiVersionResponse),
   );
 
-  // All product routes belong in this group so authentication runs before any
-  // authenticated rate-limit key or domain handler can consume request context.
-  const protectedRoutes = new Hono<ApiEnv>()
+  // This registry is always mounted. Add every product route group through
+  // protectedRouteGroup so authentication runs before rate limiting or a
+  // handler can consume request context.
+  const protectedRoutes = new Hono<ApiEnv>();
+
+  if (options.includeContractFixture) {
+    protectedRoutes.route('/__contract', protectedRouteGroup(options, contractFixtureRoutes));
+  }
+
+  return new Hono<ApiEnv>().route('/', publicRoutes).route('/', protectedRoutes);
+}
+
+function protectedRouteGroup(
+  options: {
+    authVerifier: AuthTokenVerifier;
+    rateLimiter: RateLimiter;
+  },
+  routes: Hono<ApiEnv>,
+) {
+  return new Hono<ApiEnv>()
     .use('*', authenticationMiddleware(options.authVerifier))
-    .use('*', rateLimitMiddleware(options.rateLimiter));
-
-  if (options.includeContractFixture) {
-    protectedRoutes.route('/__contract', contractFixtureRoutes);
-  }
-
-  const routes = new Hono<ApiEnv>().route('/', publicRoutes);
-
-  if (options.includeContractFixture) {
-    routes.route('/', protectedRoutes);
-  }
-
-  return routes;
+    .use('*', rateLimitMiddleware(options.rateLimiter))
+    .route('/', routes);
 }

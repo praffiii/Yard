@@ -50,6 +50,25 @@ describe('versioned API contract', () => {
     expect(JSON.stringify(problem)).not.toContain('stack');
   });
 
+  it('keeps unknown routes outside the protected route group', async () => {
+    let verifierCalls = 0;
+    const contractApp = createApp({
+      authVerifier: {
+        verify: async (token) => {
+          verifierCalls += 1;
+          return { subject: `user-for-${token}` };
+        },
+      },
+      includeContractFixture: true,
+    });
+    const response = await contractApp.request('/v1/does-not-exist');
+    const problem = await readProblem(response);
+
+    expect(response.status).toBe(404);
+    expect(problem.code).toBe('route_not_found');
+    expect(verifierCalls).toBe(0);
+  });
+
   it('validates body, query, path, and header inputs with safe errors', async () => {
     const contractApp = createApp({
       authVerifier: contractVerifier,
