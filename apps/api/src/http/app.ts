@@ -2,6 +2,8 @@ import { HTTPException } from 'hono/http-exception';
 import { cors } from 'hono/cors';
 import { Hono } from 'hono';
 import { apiConfig } from '../infrastructure/config.js';
+import { rejectingTokenVerifier } from './auth-middleware.js';
+import type { AuthTokenVerifier } from '../infrastructure/auth/clerk-adapter.js';
 import { type DatabaseClient, type DatabaseHealth } from '../infrastructure/database/client.js';
 import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limiter.js';
 import { applicationLayer, runApplication } from '../runtime/application.js';
@@ -14,6 +16,8 @@ import { createV1Routes } from './v1/routes.js';
 export type CreateAppOptions = {
   /** Only contract tests enable the non-product validation fixture. */
   readonly includeContractFixture?: boolean;
+  readonly allowedOrigins?: readonly string[];
+  readonly authVerifier?: AuthTokenVerifier;
   readonly rateLimiter?: RateLimiter;
   readonly database?: DatabaseClient | DatabaseHealth;
 };
@@ -21,6 +25,7 @@ export type CreateAppOptions = {
 export function createApp(options: CreateAppOptions = {}) {
   const layer = applicationLayer(options.database);
   const v1 = createV1Routes({
+    authVerifier: options.authVerifier ?? rejectingTokenVerifier,
     includeContractFixture: options.includeContractFixture,
     rateLimiter: options.rateLimiter ?? allowAllRateLimiter,
   });
@@ -32,7 +37,10 @@ export function createApp(options: CreateAppOptions = {}) {
       cors({
         allowHeaders: ['Authorization', 'Content-Type', 'Idempotency-Key'],
         exposeHeaders: ['Retry-After', 'X-Request-ID'],
-        origin: (origin) => (apiConfig.allowedOrigins.includes(origin) ? origin : undefined),
+        origin: (origin) =>
+          (options.allowedOrigins ?? apiConfig.allowedOrigins).includes(origin)
+            ? origin
+            : undefined,
       }),
     )
     .get('/healthz', async (c) => {

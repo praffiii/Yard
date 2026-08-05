@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/tanstack-react-start';
 import type { ReactNode } from 'react';
 import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
 import '../styles.css';
@@ -17,10 +18,18 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
+
+  if (!publishableKey) {
+    throw new Error('VITE_CLERK_PUBLISHABLE_KEY is required for the web application');
+  }
+
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <ClerkProvider publishableKey={publishableKey}>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+    </ClerkProvider>
   );
 }
 

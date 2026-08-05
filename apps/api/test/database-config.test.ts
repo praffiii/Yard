@@ -1,5 +1,54 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { readDatabaseRuntimeConfig } from '../src/infrastructure/config.js';
+import {
+  readApiRuntimeConfig,
+  readClerkAuthConfig,
+  readDatabaseRuntimeConfig,
+} from '../src/infrastructure/config.js';
+
+describe('API runtime configuration', () => {
+  it('requires explicit origins and Clerk verification settings', () => {
+    expect(() => readApiRuntimeConfig({})).toThrow('ALLOWED_ORIGINS is required');
+    expect(() => readApiRuntimeConfig({ ALLOWED_ORIGINS: 'https://yard.example' })).toThrow(
+      'CLERK_SECRET_KEY is required',
+    );
+  });
+
+  it('validates origins without including credential values in errors', () => {
+    expect(() =>
+      readClerkAuthConfig({
+        CLERK_SECRET_KEY: 'sk_test_secret_value',
+        CLERK_AUTHORIZED_PARTIES: 'not-an-origin',
+      }),
+    ).toThrow('CLERK_AUTHORIZED_PARTIES must contain valid HTTP or HTTPS origins');
+
+    expect(() => readApiRuntimeConfig({ ALLOWED_ORIGINS: '*' })).toThrow(
+      'ALLOWED_ORIGINS must contain valid HTTP or HTTPS origins',
+    );
+    expect(() => readApiRuntimeConfig({ ALLOWED_ORIGINS: ' , ' })).toThrow(
+      'ALLOWED_ORIGINS is required and must contain at least one origin',
+    );
+  });
+
+  it('returns separate validated web origins and Clerk authorization settings', () => {
+    expect(
+      readApiRuntimeConfig({
+        ALLOWED_ORIGINS: 'https://yard.example, https://admin.yard.example',
+        CLERK_SECRET_KEY: 'sk_test_secret_value',
+        CLERK_AUTHORIZED_PARTIES: 'https://yard.example',
+        HOST: '0.0.0.0',
+        PORT: '9000',
+      }),
+    ).toEqual({
+      allowedOrigins: ['https://yard.example', 'https://admin.yard.example'],
+      auth: {
+        authorizedParties: ['https://yard.example'],
+        secretKey: 'sk_test_secret_value',
+      },
+      hostname: '0.0.0.0',
+      port: 9000,
+    });
+  });
+});
 
 describe('database connection configuration', () => {
   it('requires the pooled runtime URL without falling back to the direct URL', () => {
