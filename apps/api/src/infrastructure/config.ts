@@ -15,6 +15,36 @@ function parseAllowedOrigins(value: string | undefined) {
     .filter(Boolean);
 }
 
+export type DatabaseRuntimeDriver = 'neon' | 'pg';
+
+export type DatabaseRuntimeConfig = {
+  readonly driver: DatabaseRuntimeDriver;
+  /** The pooled connection used by the running API. */
+  readonly url: string;
+};
+
+export function readDatabaseRuntimeConfig(
+  environment: NodeJS.ProcessEnv = process.env,
+): DatabaseRuntimeConfig {
+  const url = environment.DATABASE_URL?.trim();
+
+  if (!url) {
+    throw new Error('DATABASE_URL is required for the API runtime');
+  }
+
+  const driver = environment.DATABASE_RUNTIME_DRIVER?.trim() || 'pg';
+
+  if (driver !== 'neon' && driver !== 'pg') {
+    throw new Error('DATABASE_RUNTIME_DRIVER must be either neon or pg');
+  }
+
+  return { driver, url };
+}
+
+export const databaseConfig = {
+  healthProbeTimeoutMs: 2_000,
+} as const;
+
 export const apiConfig = {
   allowedOrigins: parseAllowedOrigins(process.env.ALLOWED_ORIGINS),
   hostname: process.env.HOST?.trim() || '127.0.0.1',

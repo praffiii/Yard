@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { app, createApp } from '../src/http/app.js';
+import { createApp } from '../src/http/app.js';
 
+const app = createApp();
 const resourceId = '00000000-0000-4000-8000-000000000001';
 
 async function readProblem(response: Response) {
