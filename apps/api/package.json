@@ -13,6 +13,7 @@
     "db:test": "vp test --root ../.. apps/api/test/database-migration.test.ts"
   },
   "dependencies": {
+    "@clerk/backend": "3.15.1",
     "@hono/node-server": "2.1.0",
     "@hono/standard-validator": "0.3.0",
     "@neondatabase/serverless": "1.1.0",

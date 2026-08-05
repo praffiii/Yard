@@ -8,12 +8,50 @@ import type {
 
 export type { ProblemCode, ProblemDetails, ProblemType };
 
-/** Browser-only transport client; API runtime code is used only as a type. */
-export function createApiClient(baseUrl: string = import.meta.env.VITE_API_URL ?? '') {
-  return hc<AppType>(baseUrl);
+export type SessionTokenProvider = () => Promise<string | null>;
+
+export function readWebApiUrl(value: string | undefined = import.meta.env.VITE_API_URL) {
+  const apiUrl = value?.trim();
+
+  if (!apiUrl) {
+    throw new Error('VITE_API_URL is required for browser-to-API requests');
+  }
+
+  try {
+    const parsedUrl = new URL(apiUrl);
+
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new Error('invalid protocol');
+    }
+  } catch {
+    throw new Error('VITE_API_URL must be an absolute HTTP or HTTPS URL');
+  }
+
+  return apiUrl;
 }
 
-export const apiClient = createApiClient();
+/** Browser-only transport client; API runtime code is used only as a type. */
+export function createApiClient(baseUrl?: string, getToken?: SessionTokenProvider) {
+  return hc<AppType>(readWebApiUrl(baseUrl), {
+    headers: getToken
+      ? async (): Promise<Record<string, string>> => {
+          const token = (await getToken())?.trim();
+          const headers: Record<string, string> = {};
+
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+
+          return headers;
+        }
+      : undefined,
+  });
+}
+
+/** Creates an anonymous client for public API resources. */
+export function createPublicApiClient(baseUrl?: string) {
+  return createApiClient(baseUrl);
+}
 
 const problemStatusValues: readonly ProblemDetails['status'][] = [
   400, 401, 403, 404, 409, 429, 500,

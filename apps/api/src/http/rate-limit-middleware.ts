@@ -4,13 +4,13 @@ import type { ApiEnv } from './request-context.js';
 import type { RateLimiter } from '../infrastructure/rate-limiter.js';
 
 /**
- * Identity context is intentionally supplied by trusted auth/proxy middleware
- * (YARD-11); never derive actor or client identity from request headers here.
+ * Identity context is intentionally supplied by trusted auth/proxy middleware;
+ * never derive a Yard user ID or client identity from request headers here.
  */
 export function rateLimitMiddleware(limiter: RateLimiter): MiddlewareHandler<ApiEnv> {
   return async (c, next) => {
     const decision = await limiter.check({
-      actorId: c.get('actorId'),
+      yardUserId: c.get('yardUserId'),
       clientIp: c.get('clientIp'),
       method: c.req.method,
       path: c.req.path,

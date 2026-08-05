@@ -8,11 +8,93 @@ function parsePort(value: string | undefined) {
   return port;
 }
 
-function parseAllowedOrigins(value: string | undefined) {
-  return (value ?? 'http://127.0.0.1:3000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+const localDevelopmentOrigin = 'http://127.0.0.1:3000';
+
+function parseAllowedOrigins(value: string | undefined, variableName: string, required: boolean) {
+  const rawOrigins = value?.trim();
+
+  if (!rawOrigins) {
+    if (required) {
+      throw new Error(`${variableName} is required and must contain at least one origin`);
+    }
+
+    return [localDevelopmentOrigin];
+  }
+
+  const origins = [
+    ...new Set(
+      rawOrigins
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
+  ];
+
+  if (origins.length === 0) {
+    throw new Error(`${variableName} is required and must contain at least one origin`);
+  }
+
+  for (const origin of origins) {
+    let parsedOrigin: URL;
+
+    try {
+      parsedOrigin = new URL(origin);
+    } catch {
+      throw new Error(`${variableName} must contain valid HTTP or HTTPS origins`);
+    }
+
+    if (
+      (parsedOrigin.protocol !== 'http:' && parsedOrigin.protocol !== 'https:') ||
+      parsedOrigin.origin !== origin
+    ) {
+      throw new Error(`${variableName} must contain valid HTTP or HTTPS origins`);
+    }
+  }
+
+  return origins;
+}
+
+export type ClerkAuthConfig = {
+  readonly secretKey: string;
+  readonly authorizedParties: readonly string[];
+};
+
+export function readAllowedOrigins(environment: NodeJS.ProcessEnv = process.env) {
+  return parseAllowedOrigins(environment.ALLOWED_ORIGINS, 'ALLOWED_ORIGINS', true);
+}
+
+export function readClerkAuthConfig(environment: NodeJS.ProcessEnv = process.env): ClerkAuthConfig {
+  const secretKey = environment.CLERK_SECRET_KEY?.trim();
+
+  if (!secretKey) {
+    throw new Error('CLERK_SECRET_KEY is required for API authentication');
+  }
+
+  const authorizedParties = parseAllowedOrigins(
+    environment.CLERK_AUTHORIZED_PARTIES,
+    'CLERK_AUTHORIZED_PARTIES',
+    true,
+  );
+
+  return { authorizedParties, secretKey };
+}
+
+export type ApiRuntimeConfig = {
+  readonly allowedOrigins: readonly string[];
+  readonly auth: ClerkAuthConfig;
+  readonly hostname: string;
+  readonly port: number;
+};
+
+export function readApiRuntimeConfig(
+  environment: NodeJS.ProcessEnv = process.env,
+): ApiRuntimeConfig {
+  return {
+    allowedOrigins: readAllowedOrigins(environment),
+    auth: readClerkAuthConfig(environment),
+    hostname: environment.HOST?.trim() || '127.0.0.1',
+    port: parsePort(environment.PORT),
+  };
 }
 
 export type DatabaseRuntimeDriver = 'neon' | 'pg';
@@ -45,8 +127,9 @@ export const databaseConfig = {
   healthProbeTimeoutMs: 2_000,
 } as const;
 
+/** Safe defaults used by in-memory transport tests; the server validates env config before startup. */
 export const apiConfig = {
-  allowedOrigins: parseAllowedOrigins(process.env.ALLOWED_ORIGINS),
+  allowedOrigins: parseAllowedOrigins(process.env.ALLOWED_ORIGINS, 'ALLOWED_ORIGINS', false),
   hostname: process.env.HOST?.trim() || '127.0.0.1',
   port: parsePort(process.env.PORT),
 } as const;

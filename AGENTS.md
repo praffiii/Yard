@@ -145,7 +145,7 @@ The backend remains a modular monolith. There is one web-to-API boundary in the 
 
 - `apps/web` — TanStack Start/Router UI, browser interactions, and typed API client.
 - `apps/web/src/routes` — web routes; `apps/web/src/routeTree.gen.ts` is generated and should not be hand-edited.
-- `apps/api/src/http` — Hono transport composition, request parsing, middleware, and response mapping.
+middleware, and response mapping.
 - `apps/api/src/modules` — domain modules, commands, queries, schemas, DTO projections, authorization, persistence, and invariants.
 - `apps/api/src/infrastructure` — database configuration and external provider adapters.
 - `apps/api/src/runtime` — Effect composition, application bootstrap, and Node server wiring.

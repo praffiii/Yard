@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { createApp } from '../src/http/app.js';
+import type { AuthTokenVerifier } from '../src/infrastructure/auth/clerk-adapter.js';
 
 const app = createApp();
+const contractVerifier: AuthTokenVerifier = {
+  verify: async (token) => ({ subject: `user-for-${token}` }),
+};
 const resourceId = '00000000-0000-4000-8000-000000000001';
 
 async function readProblem(response: Response) {
@@ -46,9 +50,46 @@ describe('versioned API contract', () => {
     expect(JSON.stringify(problem)).not.toContain('stack');
   });
 
+  it('keeps unknown public routes outside the protected route group', async () => {
+    let verifierCalls = 0;
+    const contractApp = createApp({
+      authVerifier: {
+        verify: async (token) => {
+          verifierCalls += 1;
+          return { subject: `user-for-${token}` };
+        },
+      },
+      includeContractFixture: true,
+    });
+    const response = await contractApp.request('/v1/does-not-exist');
+    const problem = await readProblem(response);
+
+    expect(response.status).toBe(404);
+    expect(problem.code).toBe('route_not_found');
+    expect(verifierCalls).toBe(0);
+  });
+
+  it('returns a safe 404 for unknown paths inside the protected group', async () => {
+    const contractApp = createApp({
+      authVerifier: contractVerifier,
+      includeContractFixture: true,
+    });
+    const response = await contractApp.request('/v1/__contract/does-not-exist', {
+      headers: { Authorization: 'Bearer contract-token' },
+    });
+    const problem = await readProblem(response);
+
+    expect(response.status).toBe(404);
+    expect(problem.code).toBe('route_not_found');
+  });
+
   it('validates body, query, path, and header inputs with safe errors', async () => {
-    const contractApp = createApp({ includeContractFixture: true });
+    const contractApp = createApp({
+      authVerifier: contractVerifier,
+      includeContractFixture: true,
+    });
     const validHeaders = {
+      Authorization: 'Bearer contract-token',
       'Content-Type': 'application/json',
       'Idempotency-Key': 'contract-request-1',
     };
@@ -138,10 +179,16 @@ describe('versioned API contract', () => {
   });
 
   it('maps malformed JSON to Problem Details', async () => {
-    const contractApp = createApp({ includeContractFixture: true });
+    const contractApp = createApp({
+      authVerifier: contractVerifier,
+      includeContractFixture: true,
+    });
     const response = await contractApp.request(`/v1/__contract/${resourceId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: 'Bearer contract-token',
+        'Content-Type': 'application/json',
+      },
       body: '{"message":',
     });
     const problem = await readProblem(response);
