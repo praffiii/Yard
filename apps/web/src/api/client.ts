@@ -10,6 +10,20 @@ export type { ProblemCode, ProblemDetails, ProblemType };
 
 export type SessionTokenProvider = () => Promise<string | null>;
 
+/** Safe error metadata for an unsuccessful browser-to-API response. */
+export class ApiRequestError extends Error {
+  readonly code?: ProblemCode;
+
+  constructor(
+    readonly status: number,
+    problem?: Pick<ProblemDetails, 'code'>,
+  ) {
+    super(`API request failed (${problem?.code ?? status})`);
+    this.name = 'ApiRequestError';
+    this.code = problem?.code;
+  }
+}
+
 export function readWebApiUrl(value: string | undefined = import.meta.env.VITE_API_URL) {
   const apiUrl = value?.trim();
 

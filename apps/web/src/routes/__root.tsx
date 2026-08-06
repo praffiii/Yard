@@ -1,10 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ClerkProvider } from '@clerk/tanstack-react-start';
-import { useState, type ReactNode } from 'react';
-import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
+import { ClerkProvider, useAuth } from '@clerk/tanstack-react-start';
+import { useQueryClient } from '@tanstack/react-query';
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { WebRouterContext } from '../router-context';
 import '../styles.css';
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<WebRouterContext>()({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -19,7 +20,6 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  const [queryClient] = useState(() => new QueryClient());
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
 
   if (!publishableKey) {
@@ -28,13 +28,35 @@ function RootComponent() {
 
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <QueryClientProvider client={queryClient}>
+      <SessionQueryBoundary>
         <RootDocument>
           <Outlet />
         </RootDocument>
-      </QueryClientProvider>
+      </SessionQueryBoundary>
     </ClerkProvider>
   );
+}
+
+/** Clears remote data when Clerk changes accounts so private cache entries cannot cross sessions. */
+function SessionQueryBoundary({ children }: Readonly<{ children: ReactNode }>) {
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
+  const [, rerender] = useState(0);
+  const previousUserId = useRef(userId);
+  const sessionChanged = previousUserId.current !== userId;
+
+  useEffect(() => {
+    if (!sessionChanged) {
+      return;
+    }
+
+    previousUserId.current = userId;
+    queryClient.clear();
+    rerender((value) => value + 1);
+  }, [queryClient, rerender, sessionChanged, userId]);
+
+  // Keep the old tree out of the render while the cache is being cleared.
+  return sessionChanged ? null : children;
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
