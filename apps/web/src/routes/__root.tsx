@@ -1,7 +1,9 @@
 import { ClerkProvider, useAuth } from '@clerk/tanstack-react-start';
+import { MotionConfig } from 'motion/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ThemeProvider, themeInitializationScript } from '../components/theme-provider.js';
 import type { WebRouterContext } from '../router-context';
 import '../styles.css';
 
@@ -27,13 +29,17 @@ function RootComponent() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey}>
-      <SessionQueryBoundary>
-        <RootDocument>
-          <Outlet />
-        </RootDocument>
-      </SessionQueryBoundary>
-    </ClerkProvider>
+    <ThemeProvider>
+      <MotionConfig reducedMotion="user">
+        <ClerkProvider publishableKey={publishableKey}>
+          <SessionQueryBoundary>
+            <RootDocument>
+              <Outlet />
+            </RootDocument>
+          </SessionQueryBoundary>
+        </ClerkProvider>
+      </MotionConfig>
+    </ThemeProvider>
   );
 }
 
@@ -61,9 +67,10 @@ function SessionQueryBoundary({ children }: Readonly<{ children: ReactNode }>) {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
       </head>
       <body>
         {children}
