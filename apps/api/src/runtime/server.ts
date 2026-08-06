@@ -6,6 +6,10 @@ import {
 } from '../infrastructure/config.js';
 import { createClerkTokenVerifier } from '../infrastructure/auth/clerk-adapter.js';
 import { createDatabaseClient, type DatabaseClient } from '../infrastructure/database/client.js';
+import {
+  createProviderAdapters,
+  type ProviderAdapters,
+} from '../infrastructure/provider-adapters.js';
 import { createApp } from '../http/app.js';
 import type { AppType } from '../http/app.js';
 
@@ -15,6 +19,7 @@ export type StartServerOptions = {
   readonly config?: ApiRuntimeConfig;
   readonly database?: DatabaseClient;
   readonly port?: number;
+  readonly providers?: ProviderAdapters;
 };
 
 export function createServer(api: ApiApp, port = apiConfig.port, hostname = apiConfig.hostname) {
@@ -28,10 +33,12 @@ export function createServer(api: ApiApp, port = apiConfig.port, hostname = apiC
 export function startServer(options: StartServerOptions = {}) {
   const config = options.config ?? readApiRuntimeConfig();
   const database = options.database ?? createDatabaseClient();
+  const providers = options.providers ?? createProviderAdapters();
   const api = createApp({
     allowedOrigins: config.allowedOrigins,
     authVerifier: createClerkTokenVerifier(config.auth),
     database,
+    providers,
   });
   const server = createServer(api, options.port ?? config.port, config.hostname);
   const shutdown = () =>

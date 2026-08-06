@@ -5,6 +5,7 @@ import { apiConfig } from '../infrastructure/config.js';
 import { rejectingTokenVerifier } from './auth-middleware.js';
 import type { AuthTokenVerifier } from '../infrastructure/auth/clerk-adapter.js';
 import { type DatabaseClient, type DatabaseHealth } from '../infrastructure/database/client.js';
+import type { ProviderAdapters } from '../infrastructure/provider-types.js';
 import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limiter.js';
 import { applicationLayer, runApplication } from '../runtime/application.js';
 import { healthCheck } from './routes/health.js';
@@ -20,10 +21,14 @@ export type CreateAppOptions = {
   readonly authVerifier?: AuthTokenVerifier;
   readonly rateLimiter?: RateLimiter;
   readonly database?: DatabaseClient | DatabaseHealth;
+  readonly providers?: ProviderAdapters;
 };
 
 export function createApp(options: CreateAppOptions = {}) {
-  const layer = applicationLayer(options.database);
+  const layer =
+    options.database?.kind === 'client'
+      ? applicationLayer(options.database, options.providers)
+      : applicationLayer(options.database);
   const v1 = createV1Routes({
     authVerifier: options.authVerifier ?? rejectingTokenVerifier,
     includeContractFixture: options.includeContractFixture,

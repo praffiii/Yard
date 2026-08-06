@@ -54,6 +54,33 @@ function parseAllowedOrigins(value: string | undefined, variableName: string, re
   return origins;
 }
 
+function readRequired(environment: NodeJS.ProcessEnv, variableName: string) {
+  const value = environment[variableName]?.trim();
+
+  if (!value) {
+    throw new Error(`${variableName} is required`);
+  }
+
+  return value;
+}
+
+function readHttpUrl(environment: NodeJS.ProcessEnv, variableName: string) {
+  const value = readRequired(environment, variableName);
+  let parsed: URL;
+
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${variableName} must be a valid HTTP or HTTPS URL`);
+  }
+
+  if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.origin !== value) {
+    throw new Error(`${variableName} must be a valid HTTP or HTTPS URL`);
+  }
+
+  return value;
+}
+
 export type ClerkAuthConfig = {
   readonly secretKey: string;
   readonly authorizedParties: readonly string[];
@@ -126,6 +153,65 @@ export function readDatabaseRuntimeConfig(
 export const databaseConfig = {
   healthProbeTimeoutMs: 2_000,
 } as const;
+
+export type MapboxConfig = {
+  readonly accessToken: string;
+};
+
+export type R2Config = {
+  readonly accessKeyId: string;
+  readonly bucket: string;
+  readonly endpoint: string;
+  readonly presignedUrlTtlSeconds: number;
+  readonly region: string;
+  readonly secretAccessKey: string;
+};
+
+export type ResendConfig = {
+  readonly apiKey: string;
+  readonly fromEmail: string;
+};
+
+const r2PresignedUrlTtlSeconds = {
+  default: 300,
+  maximum: 900,
+  minimum: 60,
+} as const;
+
+export function readMapboxConfig(environment: NodeJS.ProcessEnv = process.env): MapboxConfig {
+  return { accessToken: readRequired(environment, 'MAPBOX_ACCESS_TOKEN') };
+}
+
+export function readR2Config(environment: NodeJS.ProcessEnv = process.env): R2Config {
+  const rawTtl = environment.R2_PRESIGNED_URL_TTL_SECONDS?.trim();
+  const presignedUrlTtlSeconds = rawTtl ? Number(rawTtl) : r2PresignedUrlTtlSeconds.default;
+
+  if (
+    !Number.isInteger(presignedUrlTtlSeconds) ||
+    presignedUrlTtlSeconds < r2PresignedUrlTtlSeconds.minimum ||
+    presignedUrlTtlSeconds > r2PresignedUrlTtlSeconds.maximum
+  ) {
+    throw new Error(
+      `R2_PRESIGNED_URL_TTL_SECONDS must be between ${r2PresignedUrlTtlSeconds.minimum} and ${r2PresignedUrlTtlSeconds.maximum} seconds`,
+    );
+  }
+
+  return {
+    accessKeyId: readRequired(environment, 'R2_ACCESS_KEY_ID'),
+    bucket: readRequired(environment, 'R2_BUCKET'),
+    endpoint: readHttpUrl(environment, 'R2_ENDPOINT'),
+    presignedUrlTtlSeconds,
+    region: environment.R2_REGION?.trim() || 'auto',
+    secretAccessKey: readRequired(environment, 'R2_SECRET_ACCESS_KEY'),
+  };
+}
+
+export function readResendConfig(environment: NodeJS.ProcessEnv = process.env): ResendConfig {
+  return {
+    apiKey: readRequired(environment, 'RESEND_API_KEY'),
+    fromEmail: readRequired(environment, 'RESEND_FROM_EMAIL'),
+  };
+}
 
 /** Safe defaults used by in-memory transport tests; the server validates env config before startup. */
 export const apiConfig = {
