@@ -69,10 +69,10 @@ export type ProblemType = Schema.Schema.Type<typeof ProblemTypeSchema>;
 export type ProblemCode = Schema.Schema.Type<typeof ProblemCodeSchema>;
 export type ProblemStatus = Schema.Schema.Type<typeof ProblemStatusSchema>;
 
-export type ValidationIssue = {
-  readonly path?: ReadonlyArray<PropertyKey | { readonly key: PropertyKey }>;
-  readonly message?: string;
-};
+export type ValidationIssue = Readonly<{
+  path?: ReadonlyArray<PropertyKey | Readonly<{ key: PropertyKey }>>;
+  message?: string;
+}>;
 
 type ProblemDefinition = Omit<ProblemDetails, 'requestId'>;
 
@@ -89,7 +89,7 @@ export function problemResponse(c: Context<ApiEnv>, definition: ProblemDefinitio
   });
 }
 
-export function validationProblem(c: Context<ApiEnv>, issues: readonly ValidationIssue[]) {
+export function validationProblem(c: Context<ApiEnv>, issues: ReadonlyArray<ValidationIssue>) {
   return problemResponse(c, {
     type: problemTypes.invalidRequest,
     title: 'Bad Request',

@@ -1,5 +1,7 @@
 packages:
   - apps/*
+allowBuilds:
+  sharp: true
 
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.7

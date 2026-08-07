@@ -6,11 +6,11 @@ export const themePreferences = ['system', 'light', 'dark'] as const;
 export type ThemePreference = (typeof themePreferences)[number];
 export type ResolvedTheme = Exclude<ThemePreference, 'system'>;
 
-type ThemeContextValue = {
-  readonly preference: ThemePreference;
-  readonly resolvedTheme: ResolvedTheme;
-  readonly setPreference: (preference: ThemePreference) => void;
-};
+type ThemeContextValue = Readonly<{
+  preference: ThemePreference;
+  resolvedTheme: ResolvedTheme;
+  setPreference: (preference: ThemePreference) => void;
+}>;
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 

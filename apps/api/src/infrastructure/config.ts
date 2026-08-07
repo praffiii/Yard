@@ -54,10 +54,37 @@ function parseAllowedOrigins(value: string | undefined, variableName: string, re
   return origins;
 }
 
-export type ClerkAuthConfig = {
-  readonly secretKey: string;
-  readonly authorizedParties: readonly string[];
-};
+function readRequired(environment: NodeJS.ProcessEnv, variableName: string) {
+  const value = environment[variableName]?.trim();
+
+  if (!value) {
+    throw new Error(`${variableName} is required`);
+  }
+
+  return value;
+}
+
+function readHttpUrl(environment: NodeJS.ProcessEnv, variableName: string) {
+  const value = readRequired(environment, variableName);
+  let parsed: URL;
+
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${variableName} must be a valid HTTP or HTTPS URL`);
+  }
+
+  if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.origin !== value) {
+    throw new Error(`${variableName} must be a valid HTTP or HTTPS URL`);
+  }
+
+  return value;
+}
+
+export type ClerkAuthConfig = Readonly<{
+  secretKey: string;
+  authorizedParties: ReadonlyArray<string>;
+}>;
 
 export function readAllowedOrigins(environment: NodeJS.ProcessEnv = process.env) {
   return parseAllowedOrigins(environment.ALLOWED_ORIGINS, 'ALLOWED_ORIGINS', true);
@@ -79,12 +106,12 @@ export function readClerkAuthConfig(environment: NodeJS.ProcessEnv = process.env
   return { authorizedParties, secretKey };
 }
 
-export type ApiRuntimeConfig = {
-  readonly allowedOrigins: readonly string[];
-  readonly auth: ClerkAuthConfig;
-  readonly hostname: string;
-  readonly port: number;
-};
+export type ApiRuntimeConfig = Readonly<{
+  allowedOrigins: ReadonlyArray<string>;
+  auth: ClerkAuthConfig;
+  hostname: string;
+  port: number;
+}>;
 
 export function readApiRuntimeConfig(
   environment: NodeJS.ProcessEnv = process.env,
@@ -99,11 +126,11 @@ export function readApiRuntimeConfig(
 
 export type DatabaseRuntimeDriver = 'neon' | 'pg';
 
-export type DatabaseRuntimeConfig = {
-  readonly driver: DatabaseRuntimeDriver;
+export type DatabaseRuntimeConfig = Readonly<{
+  driver: DatabaseRuntimeDriver;
   /** The pooled connection used by the running API. */
-  readonly url: string;
-};
+  url: string;
+}>;
 
 export function readDatabaseRuntimeConfig(
   environment: NodeJS.ProcessEnv = process.env,
@@ -126,6 +153,65 @@ export function readDatabaseRuntimeConfig(
 export const databaseConfig = {
   healthProbeTimeoutMs: 2_000,
 } as const;
+
+export type MapboxConfig = Readonly<{
+  accessToken: string;
+}>;
+
+export type R2Config = Readonly<{
+  accessKeyId: string;
+  bucket: string;
+  endpoint: string;
+  presignedUrlTtlSeconds: number;
+  region: string;
+  secretAccessKey: string;
+}>;
+
+export type ResendConfig = Readonly<{
+  apiKey: string;
+  fromEmail: string;
+}>;
+
+const r2PresignedUrlTtlSeconds = {
+  default: 300,
+  maximum: 900,
+  minimum: 60,
+} as const;
+
+export function readMapboxConfig(environment: NodeJS.ProcessEnv = process.env): MapboxConfig {
+  return { accessToken: readRequired(environment, 'MAPBOX_ACCESS_TOKEN') };
+}
+
+export function readR2Config(environment: NodeJS.ProcessEnv = process.env): R2Config {
+  const rawTtl = environment.R2_PRESIGNED_URL_TTL_SECONDS?.trim();
+  const presignedUrlTtlSeconds = rawTtl ? Number(rawTtl) : r2PresignedUrlTtlSeconds.default;
+
+  if (
+    !Number.isInteger(presignedUrlTtlSeconds) ||
+    presignedUrlTtlSeconds < r2PresignedUrlTtlSeconds.minimum ||
+    presignedUrlTtlSeconds > r2PresignedUrlTtlSeconds.maximum
+  ) {
+    throw new Error(
+      `R2_PRESIGNED_URL_TTL_SECONDS must be between ${r2PresignedUrlTtlSeconds.minimum} and ${r2PresignedUrlTtlSeconds.maximum} seconds`,
+    );
+  }
+
+  return {
+    accessKeyId: readRequired(environment, 'R2_ACCESS_KEY_ID'),
+    bucket: readRequired(environment, 'R2_BUCKET'),
+    endpoint: readHttpUrl(environment, 'R2_ENDPOINT'),
+    presignedUrlTtlSeconds,
+    region: environment.R2_REGION?.trim() || 'auto',
+    secretAccessKey: readRequired(environment, 'R2_SECRET_ACCESS_KEY'),
+  };
+}
+
+export function readResendConfig(environment: NodeJS.ProcessEnv = process.env): ResendConfig {
+  return {
+    apiKey: readRequired(environment, 'RESEND_API_KEY'),
+    fromEmail: readRequired(environment, 'RESEND_FROM_EMAIL'),
+  };
+}
 
 /** Safe defaults used by in-memory transport tests; the server validates env config before startup. */
 export const apiConfig = {

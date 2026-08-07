@@ -1,14 +1,14 @@
-export type RateLimitRequest = {
-  readonly method: string;
-  readonly path: string;
-  readonly yardUserId?: string;
-  readonly clientIp?: string;
-};
+export type RateLimitRequest = Readonly<{
+  method: string;
+  path: string;
+  yardUserId?: string;
+  clientIp?: string;
+}>;
 
-export type RateLimitDecision = {
-  readonly allowed: boolean;
-  readonly retryAfterSeconds?: number;
-};
+export type RateLimitDecision = Readonly<{
+  allowed: boolean;
+  retryAfterSeconds?: number;
+}>;
 
 /**
  * Provider-neutral abuse-protection boundary. Authentication and trusted proxy

@@ -1,10 +1,10 @@
 import type { DatabaseClient, YardDatabase } from './types.js';
 
-type DatabasePool = {
-  readonly query: (query: string) => Promise<unknown>;
-  readonly end: () => Promise<void>;
-  readonly on: (event: 'error', listener: (error: Error) => void) => unknown;
-};
+type DatabasePool = Readonly<{
+  query: (query: string) => Promise<unknown>;
+  end: () => Promise<void>;
+  on: (event: 'error', listener: (error: Error) => void) => unknown;
+}>;
 
 /** Shares one in-flight readiness probe and keeps pool lifecycle provider-neutral. */
 export function createPooledDatabase<TDatabase extends YardDatabase>(

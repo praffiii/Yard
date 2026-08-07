@@ -1,20 +1,20 @@
-export type IdempotencyClaimInput = {
-  readonly actorId: string;
-  readonly operation: string;
-  readonly key: string;
-  readonly requestFingerprint: string;
-};
+export type IdempotencyClaimInput = Readonly<{
+  actorId: string;
+  operation: string;
+  key: string;
+  requestFingerprint: string;
+}>;
 
-export type IdempotencyReplay = {
-  readonly status: number;
-  readonly headers: Readonly<Record<string, string>>;
-  readonly body: Readonly<Record<string, unknown>> | null;
-};
+export type IdempotencyReplay = Readonly<{
+  status: number;
+  headers: Readonly<Record<string, string>>;
+  body: Readonly<Record<string, unknown>> | null;
+}>;
 
 export type IdempotencyClaim =
-  | { readonly kind: 'claimed'; readonly reservationId: string }
-  | { readonly kind: 'replay'; readonly response: IdempotencyReplay }
-  | { readonly kind: 'conflict' };
+  | Readonly<{ kind: 'claimed'; reservationId: string }>
+  | Readonly<{ kind: 'replay'; response: IdempotencyReplay }>
+  | Readonly<{ kind: 'conflict' }>;
 
 /**
  * Storage seam for durable mutation replay state. Implementations must claim a
@@ -22,8 +22,10 @@ export type IdempotencyClaim =
  */
 export interface IdempotencyStore {
   claim(input: IdempotencyClaimInput): IdempotencyClaim | Promise<IdempotencyClaim>;
-  complete(input: {
-    readonly reservationId: string;
-    readonly response: IdempotencyReplay;
-  }): void | Promise<void>;
+  complete(
+    input: Readonly<{
+      reservationId: string;
+      response: IdempotencyReplay;
+    }>,
+  ): void | Promise<void>;
 }
