@@ -14,7 +14,7 @@ export default defineConfig({
     ignorePatterns: ['**/dist/**', '**/routeTree.gen.ts'],
   },
   fmt: {
-    ignorePatterns: ['**/routeTree.gen.ts'],
+    ignorePatterns: ['**/AGENTS.md', '**/routeTree.gen.ts'],
     semi: true,
     singleQuote: true,
   },

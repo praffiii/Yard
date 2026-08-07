@@ -1,9 +1,14 @@
-/docs/
+/docs/*
+!/docs/deployment.md
+!/docs/local-development.md
 /idea.MD
 
 node_modules/
 dist/
 .vite/
+.nitro/
+.vercel/
+.output/
 .tanstack/
 .pnpm-store/
 .env

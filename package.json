@@ -7,7 +7,8 @@
     "check": "vp check",
     "test": "vp test",
     "build": "vp run -r build",
-    "typecheck": "vp run -r typecheck"
+    "typecheck": "vp run -r typecheck",
+    "verify:acceptance": "pnpm exec node scripts/verify-clean-checkout.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
