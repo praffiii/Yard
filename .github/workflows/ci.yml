@@ -14,6 +14,7 @@ concurrency:
 jobs:
   verify:
     name: Verify foundation
+    # ubuntu-slim cannot run the Docker service container used for PostGIS.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
