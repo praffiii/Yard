@@ -3,10 +3,25 @@ import { HTTPException } from 'hono/http-exception';
 import { describe, expect, it } from 'vite-plus/test';
 import { authenticationMiddleware } from '../src/http/auth-middleware.js';
 import { createApp } from '../src/http/app.js';
+import { identityMiddleware } from '../src/http/identity-middleware.js';
 import { problemForStatus } from '../src/http/problems.js';
 import { requestIdMiddleware } from '../src/http/request-id.js';
 import type { ApiEnv } from '../src/http/request-context.js';
 import type { AuthTokenVerifier } from '../src/infrastructure/auth/clerk-adapter.js';
+import type { IdentityService } from '../src/modules/identity/index.js';
+
+const yardUserId = '00000000-0000-7000-8000-000000000001';
+const testIdentityService: IdentityService = {
+  resolveAuthenticatedViewer: async () => ({ yardUserId, accountStatus: 'active' }),
+  getViewerProfile: async () => ({
+    id: yardUserId,
+    realName: null,
+    displayName: null,
+    profilePhoto: { status: 'none' },
+    accountStatus: 'active',
+    profileComplete: false,
+  }),
+};
 
 const resourceId = '00000000-0000-4000-8000-000000000001';
 
@@ -20,7 +35,11 @@ describe('browser-to-API authentication', () => {
     const verifier: AuthTokenVerifier = {
       verify: async () => ({ subject: 'user_test' }),
     };
-    const app = createApp({ authVerifier: verifier, includeContractFixture: true });
+    const app = createApp({
+      authVerifier: verifier,
+      identityService: testIdentityService,
+      includeContractFixture: true,
+    });
     const headers = { 'Content-Type': 'application/json' };
 
     for (const authorization of [undefined, 'Basic credentials', 'Bearer', 'Bearer token extra']) {
@@ -71,6 +90,7 @@ describe('browser-to-API authentication', () => {
           throw new Error(providerFailure);
         },
       },
+      identityService: testIdentityService,
       includeContractFixture: true,
     });
     const token = 'short-lived-token';
@@ -97,7 +117,11 @@ describe('browser-to-API authentication', () => {
         return { subject: 'user_verified' };
       },
     };
-    const app = createApp({ authVerifier: verifier, includeContractFixture: true });
+    const app = createApp({
+      authVerifier: verifier,
+      identityService: testIdentityService,
+      includeContractFixture: true,
+    });
     const response = await app.request(`/v1/__contract/${resourceId}`, {
       method: 'POST',
       headers: {
@@ -128,6 +152,7 @@ describe('browser-to-API authentication', () => {
     const yardUserIds: Array<string | undefined> = [];
     const app = createApp({
       authVerifier: { verify: async () => ({ subject: 'user_verified' }) },
+      identityService: testIdentityService,
       rateLimiter: {
         check: ({ yardUserId }) => {
           yardUserIds.push(yardUserId);
@@ -156,7 +181,7 @@ describe('browser-to-API authentication', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(yardUserIds).toEqual([undefined]);
+    expect(yardUserIds).toEqual([yardUserId]);
   });
 
   it('keeps the verified provider subject separate from Yard identity context', async () => {
@@ -181,10 +206,34 @@ describe('browser-to-API authentication', () => {
     });
   });
 
+  it('replaces provider context with only the resolved Yard actor context', async () => {
+    const app = new Hono<ApiEnv>()
+      .use('*', requestIdMiddleware)
+      .use('*', authenticationMiddleware({ verify: async () => ({ subject: 'provider-secret' }) }))
+      .use('*', identityMiddleware(testIdentityService))
+      .get('/protected', (c) =>
+        c.json({
+          verifiedAuthSubject: c.get('verifiedAuthSubject'),
+          yardUserId: c.get('yardUserId'),
+          accountStatus: c.get('accountStatus'),
+        }),
+      );
+
+    const response = await app.request('/protected', {
+      headers: { Authorization: 'Bearer clerk-session-token' },
+    });
+
+    expect(await response.json()).toEqual({
+      yardUserId,
+      accountStatus: 'active',
+    });
+  });
+
   it('restricts CORS to configured origins without making CORS authorization', async () => {
     const app = createApp({
       allowedOrigins: ['https://yard.example'],
       authVerifier: { verify: async () => ({ subject: 'user_verified' }) },
+      identityService: testIdentityService,
       includeContractFixture: true,
     });
 

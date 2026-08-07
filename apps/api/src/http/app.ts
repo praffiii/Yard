@@ -7,6 +7,7 @@ import type { AuthTokenVerifier } from '../infrastructure/auth/clerk-adapter.js'
 import { type DatabaseClient, type DatabaseHealth } from '../infrastructure/database/client.js';
 import type { ProviderAdapters } from '../infrastructure/provider-types.js';
 import { allowAllRateLimiter, type RateLimiter } from '../infrastructure/rate-limiter.js';
+import { createIdentityService, type IdentityService } from '../modules/identity/index.js';
 import { applicationLayer, runApplication } from '../runtime/application.js';
 import { healthCheck } from './routes/health.js';
 import { problemForStatus, routeNotFoundProblem } from './problems.js';
@@ -20,6 +21,7 @@ export type CreateAppOptions = Readonly<{
   allowedOrigins?: ReadonlyArray<string>;
   authVerifier?: AuthTokenVerifier;
   rateLimiter?: RateLimiter;
+  identityService?: IdentityService;
   database?: DatabaseClient | DatabaseHealth;
   providers?: ProviderAdapters;
 }>;
@@ -29,8 +31,14 @@ export function createApp(options: CreateAppOptions = {}) {
     options.database?.kind === 'client'
       ? applicationLayer(options.database, options.providers)
       : applicationLayer(options.database);
+  const identity =
+    options.identityService ??
+    (options.database?.kind === 'client'
+      ? createIdentityService(options.database.db)
+      : unavailableIdentityService);
   const v1 = createV1Routes({
     authVerifier: options.authVerifier ?? rejectingTokenVerifier,
+    identity,
     includeContractFixture: options.includeContractFixture,
     rateLimiter: options.rateLimiter ?? allowAllRateLimiter,
   });
@@ -71,6 +79,15 @@ export function createApp(options: CreateAppOptions = {}) {
 
   return api;
 }
+
+const unavailableIdentityService: IdentityService = {
+  resolveAuthenticatedViewer: async () => {
+    throw new Error('Identity persistence is unavailable');
+  },
+  getViewerProfile: async () => {
+    throw new Error('Identity persistence is unavailable');
+  },
+};
 
 export type AppType = ReturnType<typeof createApp>;
 export type { ProblemCode, ProblemDetails, ProblemType } from './problems.js';

@@ -1,0 +1,148 @@
+{
+  "id": "ecebfa24-1853-4782-8f23-de83f223552c",
+  "prevId": "790cab48-9fb6-43a3-bcf3-84289ad8146d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "auth_provider": {
+          "name": "auth_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auth_subject": {
+          "name": "auth_subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_status": {
+          "name": "account_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "real_name": {
+          "name": "real_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_photo_key": {
+          "name": "profile_photo_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_photo_status": {
+          "name": "profile_photo_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_photo_width": {
+          "name": "profile_photo_width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_photo_height": {
+          "name": "profile_photo_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_auth_provider_auth_subject_unique": {
+          "name": "users_auth_provider_auth_subject_unique",
+          "nullsNotDistinct": false,
+          "columns": ["auth_provider", "auth_subject"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "users_auth_provider_non_empty": {
+          "name": "users_auth_provider_non_empty",
+          "value": "length(btrim(\"users\".\"auth_provider\")) > 0"
+        },
+        "users_auth_subject_non_empty": {
+          "name": "users_auth_subject_non_empty",
+          "value": "length(btrim(\"users\".\"auth_subject\")) > 0"
+        },
+        "users_account_status_check": {
+          "name": "users_account_status_check",
+          "value": "\"users\".\"account_status\" in ('active', 'suspended', 'deleted')"
+        },
+        "users_profile_photo_status_check": {
+          "name": "users_profile_photo_status_check",
+          "value": "\"users\".\"profile_photo_status\" is null or \"users\".\"profile_photo_status\" in ('pending', 'ready', 'failed', 'removed')"
+        },
+        "users_ready_profile_photo_check": {
+          "name": "users_ready_profile_photo_check",
+          "value": "\"users\".\"profile_photo_status\" <> 'ready' or (\"users\".\"profile_photo_key\" is not null and \"users\".\"profile_photo_width\" is not null and \"users\".\"profile_photo_height\" is not null)"
+        },
+        "users_profile_photo_width_check": {
+          "name": "users_profile_photo_width_check",
+          "value": "\"users\".\"profile_photo_width\" is null or \"users\".\"profile_photo_width\" > 0"
+        },
+        "users_profile_photo_height_check": {
+          "name": "users_profile_photo_height_check",
+          "value": "\"users\".\"profile_photo_height\" is null or \"users\".\"profile_photo_height\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

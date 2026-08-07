@@ -5,6 +5,8 @@ export type ApiEnv = Readonly<{
     verifiedAuthSubject?: string;
     /** Internal Yard user ID set only after identity resolution, never by auth middleware. */
     yardUserId?: string;
+    /** Minimal local account context needed by protected domain behavior. */
+    accountStatus?: 'active' | 'suspended';
     clientIp?: string;
   }>;
 }>;

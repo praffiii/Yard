@@ -45,21 +45,21 @@ function RootComponent() {
 
 /** Clears remote data when Clerk changes accounts so private cache entries cannot cross sessions. */
 function SessionQueryBoundary({ children }: Readonly<{ children: ReactNode }>) {
-  const { userId } = useAuth();
+  const { sessionId } = useAuth();
   const queryClient = useQueryClient();
   const [, rerender] = useState(0);
-  const previousUserId = useRef(userId);
-  const sessionChanged = previousUserId.current !== userId;
+  const previousSessionId = useRef(sessionId);
+  const sessionChanged = previousSessionId.current !== sessionId;
 
   useEffect(() => {
     if (!sessionChanged) {
       return;
     }
 
-    previousUserId.current = userId;
+    previousSessionId.current = sessionId;
     queryClient.clear();
     rerender((value) => value + 1);
-  }, [queryClient, rerender, sessionChanged, userId]);
+  }, [queryClient, rerender, sessionChanged, sessionId]);
 
   // Keep the old tree out of the render while the cache is being cleared.
   return sessionChanged ? null : children;

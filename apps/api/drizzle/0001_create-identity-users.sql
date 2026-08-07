@@ -1,0 +1,23 @@
+CREATE TABLE "users" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"auth_provider" text NOT NULL,
+	"auth_subject" text NOT NULL,
+	"account_status" text DEFAULT 'active' NOT NULL,
+	"real_name" text,
+	"display_name" text,
+	"profile_photo_key" text,
+	"profile_photo_status" text,
+	"profile_photo_width" integer,
+	"profile_photo_height" integer,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	CONSTRAINT "users_auth_provider_auth_subject_unique" UNIQUE("auth_provider","auth_subject"),
+	CONSTRAINT "users_auth_provider_non_empty" CHECK (length(btrim("users"."auth_provider")) > 0),
+	CONSTRAINT "users_auth_subject_non_empty" CHECK (length(btrim("users"."auth_subject")) > 0),
+	CONSTRAINT "users_account_status_check" CHECK ("users"."account_status" in ('active', 'suspended', 'deleted')),
+	CONSTRAINT "users_profile_photo_status_check" CHECK ("users"."profile_photo_status" is null or "users"."profile_photo_status" in ('pending', 'ready', 'failed', 'removed')),
+	CONSTRAINT "users_ready_profile_photo_check" CHECK ("users"."profile_photo_status" <> 'ready' or ("users"."profile_photo_key" is not null and "users"."profile_photo_width" is not null and "users"."profile_photo_height" is not null)),
+	CONSTRAINT "users_profile_photo_width_check" CHECK ("users"."profile_photo_width" is null or "users"."profile_photo_width" > 0),
+	CONSTRAINT "users_profile_photo_height_check" CHECK ("users"."profile_photo_height" is null or "users"."profile_photo_height" > 0)
+);
