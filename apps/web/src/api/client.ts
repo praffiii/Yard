@@ -5,6 +5,7 @@ import type {
   ProblemDetails,
   ProblemType,
 } from '../../../api/src/http/app.js';
+import type { createIdentityRoutes } from '../../../api/src/http/v1/identity-routes.js';
 
 export type { ProblemCode, ProblemDetails, ProblemType };
 
@@ -47,19 +48,24 @@ export function readWebApiUrl(value: string | undefined = import.meta.env.VITE_A
 /** Browser-only transport client; API runtime code is used only as a type. */
 export function createApiClient(baseUrl?: string, getToken?: SessionTokenProvider) {
   return hc<AppType>(readWebApiUrl(baseUrl), {
-    headers: getToken
-      ? async (): Promise<Record<string, string>> => {
-          const token = (await getToken())?.trim();
-          const headers: Record<string, string> = {};
-
-          if (token) {
-            headers.Authorization = `Bearer ${token}`;
-          }
-
-          return headers;
-        }
-      : undefined,
+    headers: getToken ? authenticatedHeaders(getToken) : undefined,
   });
+}
+
+/** Narrow Hono RPC client for the protected viewer-profile route. */
+export function createViewerProfileApiClient(baseUrl?: string, getToken?: SessionTokenProvider) {
+  type ViewerProfileRoutes = ReturnType<typeof createIdentityRoutes>;
+  const apiUrl = readWebApiUrl(baseUrl).replace(/\/$/, '');
+  return hc<ViewerProfileRoutes>(`${apiUrl}/v1/me`, {
+    headers: getToken ? authenticatedHeaders(getToken) : undefined,
+  });
+}
+
+function authenticatedHeaders(getToken: SessionTokenProvider) {
+  return async (): Promise<Record<string, string>> => {
+    const token = (await getToken())?.trim();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 }
 
 /** Creates an anonymous client for public API resources. */

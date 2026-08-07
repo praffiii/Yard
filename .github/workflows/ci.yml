@@ -62,8 +62,10 @@ jobs:
           apps/api/test/authentication.test.ts
           apps/api/test/api-contract.test.ts
           apps/api/test/provider-adapters.test.ts
+          apps/api/test/viewer-profile.test.ts
           apps/web/test/api-client.test.ts
           apps/web/test/web-data-boundaries.test.ts
+          apps/web/test/viewer-profile.test.ts
 
       - name: Create isolated migration database
         env:

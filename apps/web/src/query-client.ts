@@ -1,8 +1,9 @@
 import { QueryClient, type Query } from '@tanstack/react-query';
 
-/** Only completed queries are serialized into the browser hydration payload. */
+/** Only completed public queries are serialized into the browser hydration payload. */
 export const webDehydrateOptions = {
-  shouldDehydrateQuery: (query: Query) => query.state.status === 'success',
+  shouldDehydrateQuery: (query: Query) =>
+    query.state.status === 'success' && query.meta?.private !== true,
 };
 
 /** Creates an in-memory QueryClient owned by one browser session or SSR request. */

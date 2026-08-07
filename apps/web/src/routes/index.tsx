@@ -1,3 +1,4 @@
+import { SignInButton, useAuth } from '@clerk/tanstack-react-start';
 import {
   ArrowUpRight,
   CheckCircle,
@@ -7,6 +8,7 @@ import {
   MapPin,
   MapTrifold,
   SlidersHorizontal,
+  UserCircle,
   UsersThree,
   WarningCircle,
 } from '@phosphor-icons/react';
@@ -20,7 +22,9 @@ import { Button, buttonVariants } from '../components/ui/button.js';
 import { Input } from '../components/ui/input.js';
 import { ToggleGroup, ToggleGroupItem } from '../components/ui/toggle-group.js';
 import { createPublicApiClient } from '../api/client.js';
+import { useViewerProfileApiClient } from '../api/use-client.js';
 import { apiVersionQueryOptions } from '../features/api-status/queries.js';
+import { viewerProfileQueryOptions } from '../features/viewer-profile/queries.js';
 import { cn } from '../lib/utils.js';
 
 export type DiscoverySearch = Readonly<{
@@ -119,6 +123,7 @@ function HomePage() {
 
           <div className="flex items-center gap-2">
             <ThemeSelector />
+            <ViewerProfileAffordance />
             <Button
               aria-label="Host an activity session (coming soon)"
               className="inline-flex"
@@ -365,5 +370,42 @@ function HomePage() {
         Yard is a lightweight layer for finding and joining real-world activity sessions.
       </footer>
     </div>
+  );
+}
+
+function ViewerProfileAffordance() {
+  const { isLoaded, isSignedIn, sessionId } = useAuth();
+  const apiClient = useViewerProfileApiClient();
+  const profile = useQuery(
+    viewerProfileQueryOptions(apiClient, sessionId ?? '', isLoaded && isSignedIn === true),
+  );
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
+    return (
+      <SignInButton mode="modal">
+        <Button size="sm" variant="outline">
+          Sign in
+        </Button>
+      </SignInButton>
+    );
+  }
+
+  return (
+    <a
+      className={buttonVariants({
+        size: 'sm',
+        variant: profile.data && !profile.data.profileComplete ? 'secondary' : 'outline',
+      })}
+      href="/profile"
+    >
+      <UserCircle aria-hidden="true" size={17} />
+      <span className="hidden sm:inline">
+        {profile.data && !profile.data.profileComplete ? 'Finish profile' : 'Profile'}
+      </span>
+    </a>
   );
 }

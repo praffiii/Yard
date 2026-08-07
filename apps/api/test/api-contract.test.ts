@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { createApp } from '../src/http/app.js';
 import type { AuthTokenVerifier } from '../src/infrastructure/auth/clerk-adapter.js';
+import type { IdentityService } from '../src/modules/identity/index.js';
+
+const yardUserId = '00000000-0000-7000-8000-000000000001';
+const contractIdentityService: IdentityService = {
+  resolveAuthenticatedViewer: async () => ({ yardUserId, accountStatus: 'active' }),
+  getViewerProfile: async () => ({
+    id: yardUserId,
+    realName: null,
+    displayName: null,
+    profilePhoto: { status: 'none' },
+    accountStatus: 'active',
+    profileComplete: false,
+  }),
+};
 
 const app = createApp();
 const contractVerifier: AuthTokenVerifier = {
@@ -72,6 +86,7 @@ describe('versioned API contract', () => {
   it('returns a safe 404 for unknown paths inside the protected group', async () => {
     const contractApp = createApp({
       authVerifier: contractVerifier,
+      identityService: contractIdentityService,
       includeContractFixture: true,
     });
     const response = await contractApp.request('/v1/__contract/does-not-exist', {
@@ -86,6 +101,7 @@ describe('versioned API contract', () => {
   it('validates body, query, path, and header inputs with safe errors', async () => {
     const contractApp = createApp({
       authVerifier: contractVerifier,
+      identityService: contractIdentityService,
       includeContractFixture: true,
     });
     const validHeaders = {
@@ -181,6 +197,7 @@ describe('versioned API contract', () => {
   it('maps malformed JSON to Problem Details', async () => {
     const contractApp = createApp({
       authVerifier: contractVerifier,
+      identityService: contractIdentityService,
       includeContractFixture: true,
     });
     const response = await contractApp.request(`/v1/__contract/${resourceId}`, {

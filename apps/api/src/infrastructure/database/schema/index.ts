@@ -1,2 +1,5 @@
-// Domain table definitions will be added by their owning modules in later migrations.
-export const schema = {} as const;
+export { users } from '../../../modules/identity/database-tables.js';
+
+import { users } from '../../../modules/identity/database-tables.js';
+
+export const schema = { users } as const;
