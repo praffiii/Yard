@@ -15,12 +15,12 @@ import type { AppType } from '../http/app.js';
 
 export type ApiApp = AppType;
 
-export type StartServerOptions = {
-  readonly config?: ApiRuntimeConfig;
-  readonly database?: DatabaseClient;
-  readonly port?: number;
-  readonly providers?: ProviderAdapters;
-};
+export type StartServerOptions = Readonly<{
+  config?: ApiRuntimeConfig;
+  database?: DatabaseClient;
+  port?: number;
+  providers?: ProviderAdapters;
+}>;
 
 export function createServer(api: ApiApp, port = apiConfig.port, hostname = apiConfig.hostname) {
   return serve({

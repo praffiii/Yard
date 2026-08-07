@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
 
-export type WebRouterContext = {
-  readonly queryClient: QueryClient;
-};
+export type WebRouterContext = Readonly<{
+  queryClient: QueryClient;
+}>;

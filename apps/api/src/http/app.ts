@@ -14,15 +14,15 @@ import { requestIdMiddleware } from './request-id.js';
 import type { ApiEnv } from './request-context.js';
 import { createV1Routes } from './v1/routes.js';
 
-export type CreateAppOptions = {
+export type CreateAppOptions = Readonly<{
   /** Only contract tests enable the non-product validation fixture. */
-  readonly includeContractFixture?: boolean;
-  readonly allowedOrigins?: readonly string[];
-  readonly authVerifier?: AuthTokenVerifier;
-  readonly rateLimiter?: RateLimiter;
-  readonly database?: DatabaseClient | DatabaseHealth;
-  readonly providers?: ProviderAdapters;
-};
+  includeContractFixture?: boolean;
+  allowedOrigins?: ReadonlyArray<string>;
+  authVerifier?: AuthTokenVerifier;
+  rateLimiter?: RateLimiter;
+  database?: DatabaseClient | DatabaseHealth;
+  providers?: ProviderAdapters;
+}>;
 
 export function createApp(options: CreateAppOptions = {}) {
   const layer =

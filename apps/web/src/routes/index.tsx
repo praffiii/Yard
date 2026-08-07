@@ -23,12 +23,12 @@ import { createPublicApiClient } from '../api/client.js';
 import { apiVersionQueryOptions } from '../features/api-status/queries.js';
 import { cn } from '../lib/utils.js';
 
-export type DiscoverySearch = {
-  readonly category?: string;
-  readonly place?: string;
-  readonly sort: 'soonest' | 'distance';
-  readonly view: 'map' | 'list';
-};
+export type DiscoverySearch = Readonly<{
+  category?: string;
+  place?: string;
+  sort: 'soonest' | 'distance';
+  view: 'map' | 'list';
+}>;
 
 /** Keeps shareable discovery controls in the URL instead of a client store. */
 export function parseDiscoverySearch(search: Record<string, unknown>): DiscoverySearch {

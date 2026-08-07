@@ -1,13 +1,13 @@
 import { verifyToken } from '@clerk/backend';
 import type { ClerkAuthConfig } from '../config.js';
 
-export type VerifiedIdentity = {
-  readonly subject: string;
-};
+export type VerifiedIdentity = Readonly<{
+  subject: string;
+}>;
 
-export type AuthTokenVerifier = {
+export type AuthTokenVerifier = Readonly<{
   verify(token: string): Promise<VerifiedIdentity>;
-};
+}>;
 
 /**
  * Keeps Clerk verification and provider errors behind the API-owned identity

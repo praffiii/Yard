@@ -67,10 +67,10 @@ export function createPublicApiClient(baseUrl?: string) {
   return createApiClient(baseUrl);
 }
 
-const problemStatusValues: readonly ProblemDetails['status'][] = [
+const problemStatusValues: ReadonlyArray<ProblemDetails['status']> = [
   400, 401, 403, 404, 409, 429, 500,
 ];
-const problemTypeValues: readonly ProblemType[] = [
+const problemTypeValues: ReadonlyArray<ProblemType> = [
   'https://yard.local/problems/conflict',
   'https://yard.local/problems/forbidden',
   'https://yard.local/problems/internal-error',
@@ -79,7 +79,7 @@ const problemTypeValues: readonly ProblemType[] = [
   'https://yard.local/problems/rate-limited',
   'https://yard.local/problems/unauthenticated',
 ];
-const problemCodeValues: readonly ProblemCode[] = [
+const problemCodeValues: ReadonlyArray<ProblemCode> = [
   'conflict',
   'forbidden',
   'internal_error',
@@ -90,12 +90,12 @@ const problemCodeValues: readonly ProblemCode[] = [
   'unauthenticated',
 ];
 
-type ValidationError = {
-  readonly path: string;
-  readonly message: string;
-};
+type ValidationError = Readonly<{
+  path: string;
+  message: string;
+}>;
 
-function isKnownValue(values: readonly (string | number)[], value: unknown) {
+function isKnownValue(values: ReadonlyArray<string | number>, value: unknown) {
   return values.some((allowed) => allowed === value);
 }
 

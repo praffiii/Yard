@@ -81,10 +81,10 @@ function readHttpUrl(environment: NodeJS.ProcessEnv, variableName: string) {
   return value;
 }
 
-export type ClerkAuthConfig = {
-  readonly secretKey: string;
-  readonly authorizedParties: readonly string[];
-};
+export type ClerkAuthConfig = Readonly<{
+  secretKey: string;
+  authorizedParties: ReadonlyArray<string>;
+}>;
 
 export function readAllowedOrigins(environment: NodeJS.ProcessEnv = process.env) {
   return parseAllowedOrigins(environment.ALLOWED_ORIGINS, 'ALLOWED_ORIGINS', true);
@@ -106,12 +106,12 @@ export function readClerkAuthConfig(environment: NodeJS.ProcessEnv = process.env
   return { authorizedParties, secretKey };
 }
 
-export type ApiRuntimeConfig = {
-  readonly allowedOrigins: readonly string[];
-  readonly auth: ClerkAuthConfig;
-  readonly hostname: string;
-  readonly port: number;
-};
+export type ApiRuntimeConfig = Readonly<{
+  allowedOrigins: ReadonlyArray<string>;
+  auth: ClerkAuthConfig;
+  hostname: string;
+  port: number;
+}>;
 
 export function readApiRuntimeConfig(
   environment: NodeJS.ProcessEnv = process.env,
@@ -126,11 +126,11 @@ export function readApiRuntimeConfig(
 
 export type DatabaseRuntimeDriver = 'neon' | 'pg';
 
-export type DatabaseRuntimeConfig = {
-  readonly driver: DatabaseRuntimeDriver;
+export type DatabaseRuntimeConfig = Readonly<{
+  driver: DatabaseRuntimeDriver;
   /** The pooled connection used by the running API. */
-  readonly url: string;
-};
+  url: string;
+}>;
 
 export function readDatabaseRuntimeConfig(
   environment: NodeJS.ProcessEnv = process.env,

@@ -113,7 +113,7 @@ async function runMapboxRequest<T>(request: () => Promise<T>, message: string): 
   }
 }
 
-function mapPlaces(response: MapboxGeocodeResponse): readonly PlaceResult[] {
+function mapPlaces(response: MapboxGeocodeResponse): ReadonlyArray<PlaceResult> {
   return response.features.flatMap((feature) => {
     const coordinates = feature.center;
 

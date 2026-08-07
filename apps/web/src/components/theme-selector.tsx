@@ -2,11 +2,13 @@ import { Monitor, Moon, Sun } from '@phosphor-icons/react';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group.js';
 import { useTheme, type ThemePreference } from './theme-provider.js';
 
-const options: ReadonlyArray<{
-  readonly icon: typeof Monitor;
-  readonly label: string;
-  readonly value: ThemePreference;
-}> = [
+const options: ReadonlyArray<
+  Readonly<{
+    icon: typeof Monitor;
+    label: string;
+    value: ThemePreference;
+  }>
+> = [
   { icon: Monitor, label: 'System', value: 'system' },
   { icon: Sun, label: 'Light', value: 'light' },
   { icon: Moon, label: 'Dark', value: 'dark' },

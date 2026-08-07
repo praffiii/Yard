@@ -1,4 +1,4 @@
-export type MapCoordinates = readonly [longitude: number, latitude: number];
+export type MapCoordinates = Readonly<[longitude: number, latitude: number]>;
 
 /** Mapbox uses `place` and `locality` for city-level search results. */
 export type PlaceSearchType =

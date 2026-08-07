@@ -1,20 +1,20 @@
-export type MapCoordinates = readonly [longitude: number, latitude: number];
+export type MapCoordinates = Readonly<[longitude: number, latitude: number]>;
 
-export type MapViewport = {
-  readonly center: MapCoordinates;
-  readonly zoom: number;
-};
+export type MapViewport = Readonly<{
+  center: MapCoordinates;
+  zoom: number;
+}>;
 
-export type MapboxRenderingConfig = {
+export type MapboxRenderingConfig = Readonly<{
   /** Mapbox browser tokens are public and must be restricted by origin and usage. */
-  readonly accessToken: string;
-  readonly styleUrl: string;
-};
+  accessToken: string;
+  styleUrl: string;
+}>;
 
-type MapboxEnvironment = {
-  readonly VITE_MAPBOX_ACCESS_TOKEN?: string;
-  readonly VITE_MAPBOX_STYLE_URL?: string;
-};
+type MapboxEnvironment = Readonly<{
+  VITE_MAPBOX_ACCESS_TOKEN?: string;
+  VITE_MAPBOX_STYLE_URL?: string;
+}>;
 
 export function readMapboxRenderingConfig(
   environment: MapboxEnvironment = import.meta.env,
@@ -33,35 +33,36 @@ export function readMapboxRenderingConfig(
   return { accessToken, styleUrl };
 }
 
-export type MapController = {
-  readonly remove: () => void;
-  readonly resize: () => void;
-  readonly setCenter: (center: MapCoordinates) => void;
-  readonly setZoom: (zoom: number) => void;
-};
+export type MapController = Readonly<{
+  remove: () => void;
+  resize: () => void;
+  setCenter: (center: MapCoordinates) => void;
+  setZoom: (zoom: number) => void;
+}>;
 
-export type MapRenderer = {
-  readonly mount: (container: HTMLElement, viewport: MapViewport) => Promise<MapController>;
-};
+export type MapRenderer = Readonly<{
+  mount: (container: HTMLElement, viewport: MapViewport) => Promise<MapController>;
+}>;
 
-export type MapboxMapOptions = {
-  readonly center: [number, number];
-  readonly container: HTMLElement;
-  readonly style: string;
-  readonly zoom: number;
-};
+export type MapboxMapOptions = Readonly<{
+  center: [number, number];
+  container: HTMLElement;
+  style: string;
+  zoom: number;
+}>;
 
-export type MapboxMap = {
-  readonly remove: () => void;
-  readonly resize: () => void;
-  readonly setCenter: (center: [number, number]) => void;
-  readonly setZoom: (zoom: number) => void;
-};
+export type MapboxMap = Readonly<{
+  remove: () => void;
+  resize: () => void;
+  setCenter: (center: [number, number]) => void;
+  setZoom: (zoom: number) => void;
+}>;
 
 export type MapboxSdk = {
   accessToken: string;
-  readonly Map: new (options: MapboxMapOptions) => MapboxMap;
-};
+} & Readonly<{
+  Map: new (options: MapboxMapOptions) => MapboxMap;
+}>;
 
 export type MapboxLoader = () => Promise<MapboxSdk>;
 
