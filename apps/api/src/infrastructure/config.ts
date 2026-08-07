@@ -154,23 +154,23 @@ export const databaseConfig = {
   healthProbeTimeoutMs: 2_000,
 } as const;
 
-export type MapboxConfig = {
-  readonly accessToken: string;
-};
+export type MapboxConfig = Readonly<{
+  accessToken: string;
+}>;
 
-export type R2Config = {
-  readonly accessKeyId: string;
-  readonly bucket: string;
-  readonly endpoint: string;
-  readonly presignedUrlTtlSeconds: number;
-  readonly region: string;
-  readonly secretAccessKey: string;
-};
+export type R2Config = Readonly<{
+  accessKeyId: string;
+  bucket: string;
+  endpoint: string;
+  presignedUrlTtlSeconds: number;
+  region: string;
+  secretAccessKey: string;
+}>;
 
-export type ResendConfig = {
-  readonly apiKey: string;
-  readonly fromEmail: string;
-};
+export type ResendConfig = Readonly<{
+  apiKey: string;
+  fromEmail: string;
+}>;
 
 const r2PresignedUrlTtlSeconds = {
   default: 300,

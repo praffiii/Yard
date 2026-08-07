@@ -16,21 +16,22 @@ export type {
   R2UploadInput,
 } from './provider-types.js';
 
-export type R2ObjectReference = {
-  readonly bucket: string;
-  readonly key: string;
-};
+export type R2ObjectReference = Readonly<{
+  bucket: string;
+  key: string;
+}>;
 
-export type R2UploadReference = R2ObjectReference & {
-  readonly contentType: string;
-};
+export type R2UploadReference = R2ObjectReference &
+  Readonly<{
+    contentType: string;
+  }>;
 
 /** Provider-neutral operations used to keep R2's SDK types inside infrastructure. */
-export type R2Operations = {
-  readonly deleteObject: (input: R2ObjectReference) => Promise<void>;
-  readonly presignDownload: (input: R2ObjectReference, expiresInSeconds: number) => Promise<string>;
-  readonly presignUpload: (input: R2UploadReference, expiresInSeconds: number) => Promise<string>;
-};
+export type R2Operations = Readonly<{
+  deleteObject: (input: R2ObjectReference) => Promise<void>;
+  presignDownload: (input: R2ObjectReference, expiresInSeconds: number) => Promise<string>;
+  presignUpload: (input: R2UploadReference, expiresInSeconds: number) => Promise<string>;
+}>;
 
 /** Exposes only short-lived object instructions; raw R2 credentials never cross this boundary. */
 export function createR2Adapter(

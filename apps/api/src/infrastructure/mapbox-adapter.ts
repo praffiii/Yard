@@ -16,35 +16,35 @@ export type {
   PlaceSearchType,
   ReverseGeocodeInput,
 } from './provider-types.js';
-export type MapboxFeature = {
-  readonly center?: MapCoordinates;
-  readonly id: string;
-  readonly place_name?: string;
-  readonly place_type?: readonly string[];
-  readonly text?: string;
-};
+export type MapboxFeature = Readonly<{
+  center?: MapCoordinates;
+  id: string;
+  place_name?: string;
+  place_type?: ReadonlyArray<string>;
+  text?: string;
+}>;
 
-export type MapboxGeocodeResponse = {
-  readonly features: readonly MapboxFeature[];
-};
+export type MapboxGeocodeResponse = Readonly<{
+  features: ReadonlyArray<MapboxFeature>;
+}>;
 
-export type MapboxGeocoder = {
-  readonly forwardGeocode: (request: MapboxForwardGeocodeRequest) => Promise<MapboxGeocodeResponse>;
-  readonly reverseGeocode: (request: MapboxReverseGeocodeRequest) => Promise<MapboxGeocodeResponse>;
-};
+export type MapboxGeocoder = Readonly<{
+  forwardGeocode: (request: MapboxForwardGeocodeRequest) => Promise<MapboxGeocodeResponse>;
+  reverseGeocode: (request: MapboxReverseGeocodeRequest) => Promise<MapboxGeocodeResponse>;
+}>;
 
-type MapboxForwardGeocodeRequest = {
-  readonly countries?: readonly string[];
-  readonly limit?: number;
-  readonly proximity?: MapCoordinates;
-  readonly query: string;
-  readonly types?: readonly PlaceSearchType[];
-};
+type MapboxForwardGeocodeRequest = Readonly<{
+  countries?: ReadonlyArray<string>;
+  limit?: number;
+  proximity?: MapCoordinates;
+  query: string;
+  types?: ReadonlyArray<PlaceSearchType>;
+}>;
 
-type MapboxReverseGeocodeRequest = {
-  readonly limit?: number;
-  readonly query: MapCoordinates;
-};
+type MapboxReverseGeocodeRequest = Readonly<{
+  limit?: number;
+  query: MapCoordinates;
+}>;
 
 /** Keeps Mapbox geocoding responses and provider-specific request details in infrastructure. */
 export function createMapboxAdapter(

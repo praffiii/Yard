@@ -13,109 +13,106 @@ export type PlaceSearchType =
   | 'postcode'
   | 'region';
 
-export type PlaceSearchInput = {
-  readonly countries?: readonly string[];
-  readonly limit?: number;
-  readonly proximity?: MapCoordinates;
-  readonly query: string;
-  readonly types?: readonly PlaceSearchType[];
-};
+export type PlaceSearchInput = Readonly<{
+  countries?: ReadonlyArray<string>;
+  limit?: number;
+  proximity?: MapCoordinates;
+  query: string;
+  types?: ReadonlyArray<PlaceSearchType>;
+}>;
 
-export type ReverseGeocodeInput = {
-  readonly coordinates: MapCoordinates;
-  readonly limit?: number;
-};
+export type ReverseGeocodeInput = Readonly<{
+  coordinates: MapCoordinates;
+  limit?: number;
+}>;
 
-export type PlaceResult = {
-  readonly coordinates: MapCoordinates;
-  readonly id: string;
-  readonly label: string;
-  readonly name: string;
-  readonly type: string;
-};
+export type PlaceResult = Readonly<{
+  coordinates: MapCoordinates;
+  id: string;
+  label: string;
+  name: string;
+  type: string;
+}>;
 
-export type MapProvider = {
-  readonly reverseGeocode: (input: ReverseGeocodeInput) => Promise<readonly PlaceResult[]>;
-  readonly searchPlaces: (input: PlaceSearchInput) => Promise<readonly PlaceResult[]>;
-};
+export type MapProvider = Readonly<{
+  reverseGeocode: (input: ReverseGeocodeInput) => Promise<ReadonlyArray<PlaceResult>>;
+  searchPlaces: (input: PlaceSearchInput) => Promise<ReadonlyArray<PlaceResult>>;
+}>;
 
-export type R2UploadInput = {
-  readonly contentType: string;
-  readonly key: string;
-};
+export type R2UploadInput = Readonly<{
+  contentType: string;
+  key: string;
+}>;
 
-export type R2ObjectInput = {
-  readonly key: string;
-};
+export type R2ObjectInput = Readonly<{
+  key: string;
+}>;
 
-export type PresignedUpload = {
-  readonly expiresInSeconds: number;
-  readonly headers: Readonly<Record<string, string>>;
-  readonly method: 'PUT';
-  readonly url: string;
-};
+export type PresignedUpload = Readonly<{
+  expiresInSeconds: number;
+  headers: Readonly<Record<string, string>>;
+  method: 'PUT';
+  url: string;
+}>;
 
-export type PresignedDownload = {
-  readonly expiresInSeconds: number;
-  readonly method: 'GET';
-  readonly url: string;
-};
+export type PresignedDownload = Readonly<{
+  expiresInSeconds: number;
+  method: 'GET';
+  url: string;
+}>;
 
-export type R2ObjectStorage = {
-  readonly createDownloadUrl: (input: R2ObjectInput) => Promise<PresignedDownload>;
-  readonly createUploadUrl: (input: R2UploadInput) => Promise<PresignedUpload>;
-  readonly deleteObject: (input: R2ObjectInput) => Promise<void>;
-};
+export type R2ObjectStorage = Readonly<{
+  createDownloadUrl: (input: R2ObjectInput) => Promise<PresignedDownload>;
+  createUploadUrl: (input: R2UploadInput) => Promise<PresignedUpload>;
+  deleteObject: (input: R2ObjectInput) => Promise<void>;
+}>;
 
 export type ImageFormat = 'jpeg' | 'png' | 'webp';
 
-export type ImageMetadata = {
-  readonly format: ImageFormat;
-  readonly hasAlpha: boolean;
-  readonly height: number;
-  readonly sizeBytes: number;
-  readonly width: number;
-};
+export type ImageMetadata = Readonly<{
+  format: ImageFormat;
+  hasAlpha: boolean;
+  height: number;
+  sizeBytes: number;
+  width: number;
+}>;
 
-export type ImageVariantOptions = {
-  readonly format: ImageFormat;
-  readonly height?: number;
-  readonly quality?: number;
-  readonly width: number;
-};
+export type ImageVariantOptions = Readonly<{
+  format: ImageFormat;
+  height?: number;
+  quality?: number;
+  width: number;
+}>;
 
-export type ProcessedImage = {
-  readonly bytes: Uint8Array;
-  readonly contentType: `image/${ImageFormat}`;
-  readonly format: ImageFormat;
-};
+export type ProcessedImage = Readonly<{
+  bytes: Uint8Array;
+  contentType: `image/${ImageFormat}`;
+  format: ImageFormat;
+}>;
 
-export type ImageProcessor = {
-  readonly createVariant: (
-    input: Uint8Array,
-    options: ImageVariantOptions,
-  ) => Promise<ProcessedImage>;
-  readonly inspect: (input: Uint8Array) => Promise<ImageMetadata>;
-};
+export type ImageProcessor = Readonly<{
+  createVariant: (input: Uint8Array, options: ImageVariantOptions) => Promise<ProcessedImage>;
+  inspect: (input: Uint8Array) => Promise<ImageMetadata>;
+}>;
 
-export type TransactionalEmailInput = {
-  readonly html: string;
-  readonly subject: string;
-  readonly text?: string;
-  readonly to: readonly string[];
-};
+export type TransactionalEmailInput = Readonly<{
+  html: string;
+  subject: string;
+  text?: string;
+  to: ReadonlyArray<string>;
+}>;
 
-export type EmailDelivery = {
-  readonly messageId: string;
-};
+export type EmailDelivery = Readonly<{
+  messageId: string;
+}>;
 
-export type TransactionalEmailSender = {
-  readonly send: (input: TransactionalEmailInput) => Promise<EmailDelivery>;
-};
+export type TransactionalEmailSender = Readonly<{
+  send: (input: TransactionalEmailInput) => Promise<EmailDelivery>;
+}>;
 
-export type ProviderAdapters = {
-  readonly getImageProcessor: () => ImageProcessor;
-  readonly getMapProvider: () => MapProvider;
-  readonly getObjectStorage: () => R2ObjectStorage;
-  readonly getTransactionalEmail: () => TransactionalEmailSender;
-};
+export type ProviderAdapters = Readonly<{
+  getImageProcessor: () => ImageProcessor;
+  getMapProvider: () => MapProvider;
+  getObjectStorage: () => R2ObjectStorage;
+  getTransactionalEmail: () => TransactionalEmailSender;
+}>;

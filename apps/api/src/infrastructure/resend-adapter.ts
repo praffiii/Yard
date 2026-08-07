@@ -12,14 +12,16 @@ export type {
   TransactionalEmailSender,
 } from './provider-types.js';
 
-export type ResendRequest = TransactionalEmailInput & {
-  readonly from: string;
-};
+export type ResendRequest = Readonly<
+  TransactionalEmailInput & {
+    from: string;
+  }
+>;
 
 /** Provider-neutral transport seam used by the adapter and deterministic tests. */
-export type ResendTransport = {
-  readonly send: (request: ResendRequest) => Promise<EmailDelivery>;
-};
+export type ResendTransport = Readonly<{
+  send: (request: ResendRequest) => Promise<EmailDelivery>;
+}>;
 
 /** Sends immediate transactional email; scheduling and delivery policy remain outside this adapter. */
 export function createResendAdapter(

@@ -20,11 +20,11 @@ import type {
 
 export type { ProviderAdapters } from './provider-types.js';
 
-export type ProviderEnvironment = {
-  readonly mapbox?: MapboxConfig;
-  readonly r2?: R2Config;
-  readonly resend?: ResendConfig;
-};
+export type ProviderEnvironment = Readonly<{
+  mapbox?: MapboxConfig;
+  r2?: R2Config;
+  resend?: ResendConfig;
+}>;
 
 /** Lazily composes provider adapters so API startup does not require live accounts. */
 export function createProviderAdapters(
