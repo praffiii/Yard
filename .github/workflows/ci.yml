@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify foundation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: yard_development
+          POSTGRES_USER: yard
+          POSTGRES_PASSWORD: yard_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U yard -d yard_development"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting and lint
+        run: pnpm check
+
+      - name: Typecheck workspace
+        run: pnpm run typecheck
+
+      - name: Run focused boundary tests
+        run: >-
+          pnpm test -- run
+          apps/api/test/authentication.test.ts
+          apps/api/test/api-contract.test.ts
+          apps/api/test/provider-adapters.test.ts
+          apps/web/test/api-client.test.ts
+          apps/web/test/web-data-boundaries.test.ts
+
+      - name: Create isolated migration database
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: yard
+          PGPASSWORD: yard_ci_only
+        run: |
+          if ! psql --dbname=yard_development --tuples-only --command "SELECT 1 FROM pg_database WHERE datname = 'yard_test'" | grep -q 1; then
+            psql --dbname=yard_development --command 'CREATE DATABASE yard_test'
+          fi
+
+      - name: Check reviewed migration files
+        env:
+          DATABASE_DIRECT_URL: postgresql://yard:yard_ci_only@127.0.0.1:5432/yard_development
+        run: pnpm --filter ./apps/api db:check
+
+      - name: Run PostgreSQL/PostGIS migration smoke test
+        env:
+          DATABASE_TEST_URL: postgresql://yard:yard_ci_only@127.0.0.1:5432/yard_test
+        run: pnpm test -- run apps/api/test/database-migration.test.ts
+
+      - name: Build API independently
+        run: pnpm --filter ./apps/api build
+
+      - name: Build web independently with safe browser configuration
+        env:
+          VITE_API_URL: http://127.0.0.1:8787
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZSQ
+          VITE_MAPBOX_ACCESS_TOKEN: pk_test_ci_only
+          VITE_MAPBOX_STYLE_URL: mapbox://styles/mapbox/streets-v12
+        run: pnpm --filter ./apps/web build
+
+      - name: Run clean-checkout acceptance flow
+        env:
+          DATABASE_URL: postgresql://yard:yard_ci_only@127.0.0.1:5432/yard_development
+        run: pnpm run verify:acceptance -- --skip-build
+
+      - name: Run full test suite
+        env:
+          DATABASE_TEST_URL: postgresql://yard:yard_ci_only@127.0.0.1:5432/yard_test
+        run: pnpm test

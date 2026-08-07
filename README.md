@@ -7,6 +7,11 @@ Yard is a small TypeScript workspace with two separately buildable applications:
 - `apps/web` — TanStack Start and TanStack Router web shell.
 - `apps/api` — Node.js Hono API with an Effect application boundary.
 
+See [`docs/local-development.md`](docs/local-development.md) for prerequisites,
+environment setup, PostgreSQL/PostGIS, and the clean-checkout acceptance flow.
+See [`docs/deployment.md`](docs/deployment.md) for the Vercel web and Render API
+release configuration.
+
 ## Local workflow
 
 Install the pinned workspace dependencies:
@@ -93,3 +98,7 @@ vp run --filter ./apps/api db:test
 The test applies the committed migration chain and verifies the PostGIS
 extension and a spatial function. It does not use `DATABASE_URL` or
 `DATABASE_DIRECT_URL` as a fallback.
+
+The repository CI workflow repeats the clean install, Vite+ quality checks,
+focused boundary tests, migration smoke path, independent builds, acceptance
+verification, and full test suite without live provider accounts.
